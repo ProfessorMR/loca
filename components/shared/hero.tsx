@@ -1,11 +1,6 @@
 import { ArrowUpRight, Search } from "lucide-react";
 
-const popularSearches = [
-  "Coffee",
-  "Dinner",
-  "Date night",
-  "Work-friendly",
-];
+const popularSearches = ["Coffee", "Dinner", "Date night", "Work-friendly"];
 
 export function Hero() {
   return (
@@ -55,9 +50,7 @@ export function Hero() {
 
             {/* Popular searches */}
             <div className="mt-5 flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-xs text-muted-foreground">
-                Try:
-              </span>
+              <span className="mr-1 text-xs text-muted-foreground">Try:</span>
 
               {popularSearches.map((search) => (
                 <button

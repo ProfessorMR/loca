@@ -1,10 +1,4 @@
-import {
-  Coffee,
-  Hotel,
-  Martini,
-  Utensils,
-  TreePine,
-} from "lucide-react";
+import { Coffee, Hotel, Martini, Utensils, TreePine } from "lucide-react";
 
 const categories = [
   {
@@ -34,9 +28,7 @@ export function Categories() {
     <section className="mx-auto max-w-7xl px-6 py-16">
       <div className="mb-8 flex items-end justify-between">
         <div>
-          <p className="text-sm font-medium text-emerald-600">
-            Explore
-          </p>
+          <p className="text-sm font-medium text-emerald-600">Explore</p>
 
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">
             Browse by category
@@ -59,9 +51,7 @@ export function Categories() {
                 aria-hidden="true"
               />
 
-              <span className="text-sm font-medium">
-                {category.name}
-              </span>
+              <span className="text-sm font-medium">{category.name}</span>
             </button>
           );
         })}
