@@ -81,3 +81,7 @@ export function searchPlaces(query: string) {
     .sort((a, b) => b.score - a.score)
     .map((result) => result.place);
 }
+
+export function getPlaceCategories() {
+  return Array.from(new Set(places.map((place) => place.category)));
+}

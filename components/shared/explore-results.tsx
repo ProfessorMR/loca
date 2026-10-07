@@ -7,6 +7,7 @@ import { ExploreFilters } from "@/components/shared/explore-filters";
 import { Map } from "@/components/shared/map";
 import { PlaceCard } from "@/components/shared/place-card";
 import type { Place } from "@/types/place";
+import { List, Map as MapIcon } from "lucide-react";
 
 type ExploreResultsProps = {
   places: Place[];
@@ -18,6 +19,7 @@ export function ExploreResults({ places }: ExploreResultsProps) {
   const searchParams = useSearchParams();
 
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  const [showMobileMap, setShowMobileMap] = useState(false);
 
   const selectedCategory = searchParams.get("category") ?? "All";
   const selectedSort = searchParams.get("sort") ?? "recommended";
@@ -95,14 +97,44 @@ export function ExploreResults({ places }: ExploreResultsProps) {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
         <section>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <h2 className="text-lg font-semibold tracking-tight">Places</h2>
 
-            <span className="text-sm text-muted-foreground">
-              {displayedPlaces.length}{" "}
-              {displayedPlaces.length === 1 ? "place" : "places"}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground">
+                {displayedPlaces.length}{" "}
+                {displayedPlaces.length === 1 ? "place" : "places"}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setShowMobileMap((value) => !value)}
+                className="inline-flex items-center gap-2 rounded-full border bg-background px-3.5 py-2 text-sm font-medium shadow-sm transition-colors hover:border-foreground/30 lg:hidden"
+              >
+                {showMobileMap ? (
+                  <>
+                    <List className="size-4" />
+                    List
+                  </>
+                ) : (
+                  <>
+                    <MapIcon className="size-4" />
+                    Map
+                  </>
+                )}
+              </button>
+            </div>
           </div>
+
+          {showMobileMap && (
+            <div className="mt-5 h-[min(65vh,560px)] min-h-[360px] overflow-hidden rounded-3xl border lg:hidden">
+              <Map
+                places={displayedPlaces}
+                selectedPlaceId={selectedPlaceId}
+                onPlaceHover={setSelectedPlaceId}
+              />
+            </div>
+          )}
 
           {displayedPlaces.length > 0 ? (
             <div className="mt-5 grid gap-5 md:grid-cols-2">

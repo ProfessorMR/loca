@@ -1,8 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-
-const categories = ["All", "Restaurant", "Cafe", "Bar", "Park", "Hotel"];
+import { getPlaceCategories } from "@/lib/places";
 
 const sortOptions = [
   { label: "Recommended", value: "recommended" },
@@ -23,9 +22,11 @@ export function ExploreFilters({
   onCategoryChange,
   onSortChange,
 }: ExploreFiltersProps) {
+  const categories = ["All", ...getPlaceCategories()];
+
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex min-w-0 gap-2 overflow-x-auto pb-2">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <div className="flex min-w-0 gap-2 overflow-x-auto pb-1">
         {categories.map((category) => {
           const isSelected = selectedCategory === category;
 
@@ -46,7 +47,7 @@ export function ExploreFilters({
         })}
       </div>
 
-      <div className="relative shrink-0">
+      <div className="relative self-end shrink-0 sm:self-auto">
         <select
           value={selectedSort}
           onChange={(event) => onSortChange(event.target.value)}
