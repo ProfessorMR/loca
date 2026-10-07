@@ -9,12 +9,6 @@ type PlaceLocationMapProps = {
 
 export function PlaceLocationMap({ place }: PlaceLocationMapProps) {
   return (
-    <div className="h-72 overflow-hidden rounded-2xl border">
-      <Map
-        places={[place]}
-        selectedPlaceId={place.id}
-        onPlaceHover={() => {}}
-      />
-    </div>
+    <Map places={[place]} selectedPlaceId={place.id} onPlaceHover={() => {}} />
   );
 }

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, MapPin, Star } from "lucide-react";
+
+import { ArrowLeft, MapPin, Navigation, Star } from "lucide-react";
 import { Navbar } from "@/components/shared/navbar";
 import { PlaceLocationMap } from "@/components/shared/place-location-map";
-
+import { SavePlaceButton } from "@/components/shared/save-place-button";
 import { getPlaceById } from "@/lib/places";
+import { ViewOnMapButton } from "@/components/shared/view-on-map-button";
 
 type PlacePageProps = {
   params: Promise<{
@@ -81,29 +83,33 @@ export default async function PlacePage({ params }: PlacePageProps) {
                   {place.name}
                 </h1>
 
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Star className="size-4 fill-current text-foreground" />
                     {place.rating.toFixed(1)}
                   </span>
 
                   <span>·</span>
+
                   <span>{place.priceLevel}</span>
+
                   <span>·</span>
 
                   <span className="flex items-center gap-1">
                     <MapPin className="size-4" />
                     {place.distance}
                   </span>
+
+                  <span>·</span>
+
+                  <span className="flex items-center gap-1">
+                    <Navigation className="size-4" />
+                    {place.address}
+                  </span>
                 </div>
               </div>
 
-              <button
-                type="button"
-                className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-transform hover:scale-[1.02]"
-              >
-                Save place
-              </button>
+              <SavePlaceButton />
             </div>
 
             <div className="mt-10 grid gap-8 border-t pt-8 sm:grid-cols-2">
@@ -116,11 +122,24 @@ export default async function PlacePage({ params }: PlacePageProps) {
               </div>
 
               <div>
-                <h2 className="font-semibold">Location</h2>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="font-semibold">Location</h2>
 
-                <p className="mt-3 text-muted-foreground">{place.address}</p>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {place.address}
+                    </p>
+                  </div>
 
-                <div className="mt-5">
+                  <MapPin className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+                </div>
+
+                <ViewOnMapButton />
+
+                <div
+                  id="place-location-map"
+                  className="mt-5 h-72 overflow-hidden rounded-2xl border"
+                >
                   <PlaceLocationMap place={place} />
                 </div>
               </div>
