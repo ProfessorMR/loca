@@ -6,4 +6,6 @@ export type Place = {
   priceLevel: string;
   distance: string;
   image: string;
+  description: string;
+  address: string;
 };

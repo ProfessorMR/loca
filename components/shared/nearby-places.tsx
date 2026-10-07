@@ -1,35 +1,6 @@
 import { PlaceCard } from "@/components/shared/place-card";
-import type { Place } from "@/types/place";
+import { places } from "@/lib/places";
 
-const places: Place[] = [
-  {
-    id: "1",
-    name: "The Green Table",
-    category: "Restaurant",
-    rating: 4.8,
-    priceLevel: "$$",
-    distance: "1.2 km",
-    image: "/places/restaurant.webp",
-  },
-  {
-    id: "2",
-    name: "Morning Roast",
-    category: "Cafe",
-    rating: 4.7,
-    priceLevel: "$$",
-    distance: "0.8 km",
-    image: "/places/cafe.jpg",
-  },
-  {
-    id: "3",
-    name: "Oak Garden",
-    category: "Park",
-    rating: 4.6,
-    priceLevel: "Free",
-    distance: "2.0 km",
-    image: "/places/park.jpg",
-  },
-];
 
 export function NearbyPlaces() {
   return (
