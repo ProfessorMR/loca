@@ -8,20 +8,20 @@ type PlaceCardProps = {
   place: Place;
   isSelected?: boolean;
   onHover?: () => void;
-  onLeave?: () => void;
+  onClick?: () => void;
 };
 
 export function PlaceCard({
   place,
   isSelected = false,
   onHover,
-  onLeave,
+  onClick,
 }: PlaceCardProps) {
   return (
     <Link
       href={`/places/${place.id}`}
       onMouseEnter={onHover}
-      onMouseLeave={onLeave}
+      onClick={onClick}
       className={`group block overflow-hidden rounded-2xl border bg-background transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
         isSelected ? "border-emerald-600 shadow-md" : "border-border"
       }`}

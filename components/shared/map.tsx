@@ -102,6 +102,10 @@ export function Map({ places, selectedPlaceId, onPlaceHover }: MapProps) {
         className: "loca-place-popup",
       }).setHTML(createPlacePopupContent(place));
 
+      popup.on("close", () => {
+        onPlaceHover(null);
+      });
+
       markerElement.addEventListener("mouseenter", () => {
         markerElement.classList.add("ring-4", "ring-emerald-600/30");
       });
@@ -120,12 +124,6 @@ export function Map({ places, selectedPlaceId, onPlaceHover }: MapProps) {
 
       markerElement.addEventListener("click", () => {
         onPlaceHover(place.id);
-
-        map.current?.flyTo({
-          center: [place.longitude, place.latitude],
-          zoom: 13,
-          duration: 600,
-        });
       });
 
       markerElement.addEventListener("mouseenter", () => {
@@ -146,6 +144,24 @@ export function Map({ places, selectedPlaceId, onPlaceHover }: MapProps) {
       markers.current.clear();
     };
   }, [places]);
+
+  useEffect(() => {
+    if (!map.current || !selectedPlaceId) {
+      return;
+    }
+
+    const selectedPlace = places.find((place) => place.id === selectedPlaceId);
+
+    if (!selectedPlace) {
+      return;
+    }
+
+    map.current.flyTo({
+      center: [selectedPlace.longitude, selectedPlace.latitude],
+      zoom: 13,
+      duration: 500,
+    });
+  }, [places, selectedPlaceId]);
 
   return <div ref={mapContainer} className="h-full w-full" />;
 }

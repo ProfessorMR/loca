@@ -112,7 +112,7 @@ export function ExploreResults({ places }: ExploreResultsProps) {
                   place={place}
                   isSelected={selectedPlaceId === place.id}
                   onHover={() => setSelectedPlaceId(place.id)}
-                  onLeave={() => setSelectedPlaceId(null)}
+                  onClick={() => setSelectedPlaceId(place.id)}
                 />
               ))}
             </div>
