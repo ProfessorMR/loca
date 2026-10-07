@@ -1,7 +1,25 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export default function ExplorePage() {
+import { searchPlaces } from "@/lib/places";
+import { PlaceCard } from "@/components/shared/place-card";
+
+import { SearchBar } from "@/components/shared/search-bar";
+
+import { Map } from "@/components/shared/map";
+
+type ExplorePageProps = {
+  searchParams: Promise<{
+    q?: string;
+  }>;
+};
+
+export default async function ExplorePage({ searchParams }: ExplorePageProps) {
+  const { q } = await searchParams;
+  const query = q?.trim() ?? "";
+  const results = searchPlaces(query);
+  const resultsCount = results.length;
+
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-7xl px-6 py-10">
@@ -17,29 +35,53 @@ export default function ExplorePage() {
           <p className="text-sm font-medium text-emerald-600">Explore</p>
 
           <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Find your next place.
+            {query ? `Results for "${query}"` : "Find your next place."}
           </h1>
 
           <p className="mt-4 max-w-xl text-muted-foreground">
-            Search for places based on what you&apos;re looking for.
+            {query
+              ? `${resultsCount} ${resultsCount === 1 ? "place" : "places"} found`
+              : "Search for places based on what you're looking for."}
           </p>
         </div>
 
-        <div className="mt-10 rounded-2xl border p-2 shadow-sm">
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              placeholder="What are you looking for?"
-              className="h-12 min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground sm:text-base"
-            />
+        <div className="my-10">
+          <SearchBar initialQuery={query} />
+        </div>
+        <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
+          <section>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold tracking-tight">Places</h2>
 
-            <button
-              type="button"
-              className="rounded-xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-transform hover:scale-[1.02]"
-            >
-              Search
-            </button>
-          </div>
+              {query && (
+                <span className="text-sm text-muted-foreground">
+                  Sorted by relevance
+                </span>
+              )}
+            </div>
+
+            {results.length > 0 ? (
+              <div className="mt-5 grid gap-5 md:grid-cols-2">
+                {results.map((place) => (
+                  <PlaceCard key={place.id} place={place} />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-5 rounded-2xl border p-10 text-center">
+                <h2 className="font-semibold">No places found</h2>
+
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Try searching for something different.
+                </p>
+              </div>
+            )}
+          </section>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-6 h-[600px] overflow-hidden rounded-3xl border">
+              <Map />
+            </div>
+          </aside>
         </div>
       </div>
     </main>

@@ -1,5 +1,7 @@
 import { Coffee, Hotel, Martini, Utensils, TreePine } from "lucide-react";
 
+import Link from "next/link";
+
 const categories = [
   {
     name: "Restaurants",
@@ -41,9 +43,9 @@ export function Categories() {
           const Icon = category.icon;
 
           return (
-            <button
+            <Link
               key={category.name}
-              type="button"
+              href={`/explore?q=${encodeURIComponent(category.name)}`}
               className="group flex min-h-32 flex-col justify-between rounded-2xl border bg-background p-5 text-left transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-sm"
             >
               <Icon
@@ -52,7 +54,7 @@ export function Categories() {
               />
 
               <span className="text-sm font-medium">{category.name}</span>
-            </button>
+            </Link>
           );
         })}
       </div>

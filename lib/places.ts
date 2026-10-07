@@ -42,3 +42,37 @@ export const places: Place[] = [
 export function getPlaceById(id: string) {
   return places.find((place) => place.id === id);
 }
+
+export function searchPlaces(query: string) {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return places;
+  }
+
+  const terms = normalizedQuery.split(/\s+/);
+
+  return places
+    .map((place) => {
+      const searchableText = [
+        place.name,
+        place.category,
+        place.description,
+        place.address,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      const score = terms.reduce((total, term) => {
+        return total + (searchableText.includes(term) ? 1 : 0);
+      }, 0);
+
+      return {
+        place,
+        score,
+      };
+    })
+    .filter((result) => result.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((result) => result.place);
+}
