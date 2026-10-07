@@ -12,6 +12,8 @@ export const places: Place[] = [
     description:
       "A cozy neighborhood restaurant with a relaxed atmosphere, great food, and a comfortable setting for a casual dinner.",
     address: "123 Main Street",
+    latitude: 35.7219,
+    longitude: 51.3347,
   },
   {
     id: "2",
@@ -24,6 +26,8 @@ export const places: Place[] = [
     description:
       "A relaxed neighborhood cafe serving quality coffee in a comfortable space for working, meeting, or taking a break.",
     address: "45 Oak Avenue",
+    latitude: 35.7038,
+    longitude: 51.391,
   },
   {
     id: "3",
@@ -36,9 +40,10 @@ export const places: Place[] = [
     description:
       "A peaceful green space with walking paths and plenty of room to relax away from the busy streets.",
     address: "78 Park Road",
+    latitude: 35.735,
+    longitude: 51.425,
   },
 ];
-
 export function getPlaceById(id: string) {
   return places.find((place) => place.id === id);
 }

@@ -1,21 +1,32 @@
+import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Star } from "lucide-react";
 
 import type { Place } from "@/types/place";
 
-import Link from "next/link";
-
 type PlaceCardProps = {
   place: Place;
+  isSelected?: boolean;
+  onHover?: () => void;
+  onLeave?: () => void;
 };
 
-export function PlaceCard({ place }: PlaceCardProps) {
+export function PlaceCard({
+  place,
+  isSelected = false,
+  onHover,
+  onLeave,
+}: PlaceCardProps) {
   return (
     <Link
       href={`/places/${place.id}`}
-      className="group block overflow-hidden rounded-2xl border bg-background transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      className={`group block overflow-hidden rounded-2xl border bg-background transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+        isSelected ? "border-emerald-600 shadow-md" : "border-border"
+      }`}
     >
-      <article className="group overflow-hidden rounded-2xl border bg-background transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      <article>
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           <Image
             src={place.image}
@@ -36,9 +47,6 @@ export function PlaceCard({ place }: PlaceCardProps) {
               <h3 className="truncate font-semibold tracking-tight">
                 {place.name}
               </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {place.category}
-              </p>
             </div>
 
             <div className="flex shrink-0 items-center gap-1 text-sm font-medium">
