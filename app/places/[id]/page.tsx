@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, MapPin, Star } from "lucide-react";
+import { Navbar } from "@/components/shared/navbar";
+import { PlaceLocationMap } from "@/components/shared/place-location-map";
 
 import { getPlaceById } from "@/lib/places";
 
@@ -17,9 +19,10 @@ export default async function PlacePage({ params }: PlacePageProps) {
   if (!place) {
     return (
       <main className="min-h-screen">
-        <div className="mx-auto max-w-5xl px-6 py-10">
+        <Navbar />
+        <div className="mx-auto max-w-6xl px-6 py-10">
           <Link
-            href="/"
+            href="/explore"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-4" />
@@ -41,22 +44,30 @@ export default async function PlacePage({ params }: PlacePageProps) {
     <main className="min-h-screen">
       <div className="mx-auto max-w-5xl px-6 py-10">
         <Link
-          href="/"
+          href="/explore"
           className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="size-4" />
           Back
         </Link>
 
-        <article className="overflow-hidden rounded-3xl border bg-background">
-          <div className="relative aspect-[16/8] overflow-hidden bg-muted">
+        <article className="overflow-hidden rounded-3xl border bg-background shadow-sm">
+          <div className="relative aspect-[16/7] overflow-hidden bg-muted">
             <Image
               src={place.image}
               alt={place.name}
               fill
-              sizes="(min-width: 1024px) 1024px, 100vw"
-              className="object-cover"
+              sizes="(min-width: 1024px) 1152px, 100vw"
+              className="object-cover transition-transform duration-700 hover:scale-[1.02]"
             />
+
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
+
+            <div className="absolute bottom-5 left-5">
+              <span className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm">
+                {place.category}
+              </span>
+            </div>
           </div>
 
           <div className="p-6 sm:p-8">
@@ -109,12 +120,9 @@ export default async function PlacePage({ params }: PlacePageProps) {
 
                 <p className="mt-3 text-muted-foreground">{place.address}</p>
 
-                <button
-                  type="button"
-                  className="mt-4 text-sm font-medium text-emerald-600 hover:underline"
-                >
-                  View on map
-                </button>
+                <div className="mt-5">
+                  <PlaceLocationMap place={place} />
+                </div>
               </div>
             </div>
           </div>

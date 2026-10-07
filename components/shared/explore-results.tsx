@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { ExploreFilters } from "@/components/shared/explore-filters";
 import { Map } from "@/components/shared/map";
@@ -12,9 +13,15 @@ type ExploreResultsProps = {
 };
 
 export function ExploreResults({ places }: ExploreResultsProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedSort, setSelectedSort] = useState("recommended");
+
+  const selectedCategory = searchParams.get("category") ?? "All";
+  const selectedSort = searchParams.get("sort") ?? "recommended";
+  const query = searchParams.get("q")?.trim() ?? "";
 
   const filteredPlaces = useMemo(() => {
     if (selectedCategory === "All") {
@@ -28,8 +35,35 @@ export function ExploreResults({ places }: ExploreResultsProps) {
   }, [places, selectedCategory]);
 
   function handleCategoryChange(category: string) {
-    setSelectedCategory(category);
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (category === "All") {
+      params.delete("category");
+    } else {
+      params.set("category", category);
+    }
+
     setSelectedPlaceId(null);
+
+    const queryString = params.toString();
+
+    router.push(queryString ? `${pathname}?${queryString}` : pathname);
+  }
+
+  function handleSortChange(sort: string) {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (sort === "recommended") {
+      params.delete("sort");
+    } else {
+      params.set("sort", sort);
+    }
+
+    setSelectedPlaceId(null);
+
+    const queryString = params.toString();
+
+    router.push(queryString ? `${pathname}?${queryString}` : pathname);
   }
 
   const displayedPlaces = useMemo(() => {
@@ -53,8 +87,10 @@ export function ExploreResults({ places }: ExploreResultsProps) {
   return (
     <div className="mt-12">
       <ExploreFilters
+        selectedCategory={selectedCategory}
+        selectedSort={selectedSort}
         onCategoryChange={handleCategoryChange}
-        onSortChange={setSelectedSort}
+        onSortChange={handleSortChange}
       />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
@@ -81,12 +117,37 @@ export function ExploreResults({ places }: ExploreResultsProps) {
               ))}
             </div>
           ) : (
-            <div className="mt-5 rounded-2xl border p-10 text-center">
-              <h2 className="font-semibold">No places found</h2>
+            <div className="mt-5 rounded-3xl border bg-muted/20 p-10 text-center">
+              <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-background shadow-sm">
+                <span className="text-lg">⌕</span>
+              </div>
 
-              <p className="mt-2 text-sm text-muted-foreground">
-                Try another category.
+              <h2 className="mt-5 text-lg font-semibold tracking-tight">
+                No places found
+              </h2>
+
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                {query
+                  ? `We couldn't find any places matching "${query}".`
+                  : "We couldn't find any places matching your current filters."}
               </p>
+
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                {["Cafe", "Restaurant", "Park"].map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => {
+                      const params = new URLSearchParams();
+                      params.set("q", suggestion);
+                      router.push(`${pathname}?${params.toString()}`);
+                    }}
+                    className="rounded-full border bg-background px-4 py-2 text-sm font-medium transition-colors hover:border-foreground/30 hover:bg-muted"
+                  >
+                    Try {suggestion}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </section>

@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { ArrowUpRight, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 type SearchBarProps = {
   initialQuery?: string;
@@ -14,6 +14,8 @@ export function SearchBar({
   placeholder = "What are you looking for?",
 }: SearchBarProps) {
   const router = useRouter();
+  const pathname = usePathname();
+
   const [query, setQuery] = useState(initialQuery);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -22,11 +24,15 @@ export function SearchBar({
     const trimmedQuery = query.trim();
 
     if (!trimmedQuery) {
-      router.push("/explore");
+      router.push(pathname);
       return;
     }
 
-    router.push(`/explore?q=${encodeURIComponent(trimmedQuery)}`);
+    const params = new URLSearchParams();
+
+    params.set("q", trimmedQuery);
+
+    router.push(`${pathname}?${params.toString()}`);
   }
 
   return (

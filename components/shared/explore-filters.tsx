@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
 
 const categories = ["All", "Restaurant", "Cafe", "Bar", "Park", "Hotel"];
 
@@ -12,27 +11,18 @@ const sortOptions = [
 ];
 
 type ExploreFiltersProps = {
+  selectedCategory: string;
+  selectedSort: string;
   onCategoryChange: (category: string) => void;
   onSortChange: (sort: string) => void;
 };
 
 export function ExploreFilters({
+  selectedCategory,
+  selectedSort,
   onCategoryChange,
   onSortChange,
 }: ExploreFiltersProps) {
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedSort, setSelectedSort] = useState("recommended");
-
-  function handleCategoryChange(category: string) {
-    setSelectedCategory(category);
-    onCategoryChange(category);
-  }
-
-  function handleSortChange(sort: string) {
-    setSelectedSort(sort);
-    onSortChange(sort);
-  }
-
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex min-w-0 gap-2 overflow-x-auto pb-2">
@@ -43,7 +33,7 @@ export function ExploreFilters({
             <button
               key={category}
               type="button"
-              onClick={() => handleCategoryChange(category)}
+              onClick={() => onCategoryChange(category)}
               className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                 isSelected
                   ? "border-foreground bg-foreground text-background"
@@ -59,7 +49,7 @@ export function ExploreFilters({
       <div className="relative shrink-0">
         <select
           value={selectedSort}
-          onChange={(event) => handleSortChange(event.target.value)}
+          onChange={(event) => onSortChange(event.target.value)}
           className="h-10 appearance-none rounded-full border bg-background py-2 pl-4 pr-10 text-sm font-medium outline-none transition-colors hover:border-foreground/30 focus:border-foreground"
           aria-label="Sort places"
         >

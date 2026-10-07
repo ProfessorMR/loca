@@ -1,10 +1,10 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowLeft } from "lucide-react";
-
-import { searchPlaces } from "@/lib/places";
-import { SearchBar } from "@/components/shared/search-bar";
+import Link from "next/link";
 
 import { ExploreResults } from "@/components/shared/explore-results";
+import { SearchBar } from "@/components/shared/search-bar";
+import { searchPlaces } from "@/lib/places";
 
 type ExplorePageProps = {
   searchParams: Promise<{
@@ -38,7 +38,9 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
 
           <p className="mt-4 max-w-xl text-muted-foreground">
             {query
-              ? `${resultsCount} ${resultsCount === 1 ? "place" : "places"} found`
+              ? `${resultsCount} ${
+                  resultsCount === 1 ? "place" : "places"
+                } found`
               : "Search for places based on what you're looking for."}
           </p>
         </div>
@@ -46,7 +48,17 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
         <div className="my-10">
           <SearchBar initialQuery={query} />
         </div>
-        <ExploreResults places={results} />
+
+        <Suspense
+          fallback={
+            <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
+              <div className="h-96 animate-pulse rounded-2xl bg-muted" />
+              <div className="hidden h-[600px] animate-pulse rounded-3xl bg-muted lg:block" />
+            </div>
+          }
+        >
+          <ExploreResults places={results} />
+        </Suspense>
       </div>
     </main>
   );
