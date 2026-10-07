@@ -5,6 +5,7 @@ export const places: Place[] = [
     id: "1",
     name: "The Green Table",
     category: "Restaurant",
+    tags: ["dinner", "cozy", "casual", "food"],
     rating: 4.8,
     priceLevel: "$$",
     distance: "1.2 km",
@@ -19,6 +20,7 @@ export const places: Place[] = [
     id: "2",
     name: "Morning Roast",
     category: "Cafe",
+    tags: ["coffee", "work-friendly", "quiet", "casual"],
     rating: 4.7,
     priceLevel: "$$",
     distance: "0.8 km",
@@ -33,6 +35,7 @@ export const places: Place[] = [
     id: "3",
     name: "Oak Garden",
     category: "Park",
+    tags: ["nature", "quiet", "relaxing", "outdoor"],
     rating: 4.6,
     priceLevel: "Free",
     distance: "2.0 km",
@@ -59,17 +62,45 @@ export function searchPlaces(query: string) {
 
   return places
     .map((place) => {
+      const name = place.name.toLowerCase();
+      const category = place.category.toLowerCase();
+      const description = place.description.toLowerCase();
+      const address = place.address.toLowerCase();
+      const tags = place.tags.map((tag) => tag.toLowerCase());
+
       const searchableText = [
-        place.name,
-        place.category,
-        place.description,
-        place.address,
-      ]
-        .join(" ")
-        .toLowerCase();
+        name,
+        category,
+        description,
+        address,
+        ...tags,
+      ].join(" ");
 
       const score = terms.reduce((total, term) => {
-        return total + (searchableText.includes(term) ? 1 : 0);
+        if (name.includes(term)) {
+          return total + 4;
+        }
+
+        if (category.includes(term)) {
+          return total + 3;
+        }
+        if (description.includes(term)) {
+          return total + 2;
+        }
+
+        if (tags.some((tag) => tag.includes(term))) {
+          return total + 3;
+        }
+
+        if (address.includes(term)) {
+          return total + 1;
+        }
+
+        if (searchableText.includes(term)) {
+          return total + 1;
+        }
+
+        return total;
       }, 0);
 
       return {
@@ -78,7 +109,20 @@ export function searchPlaces(query: string) {
       };
     })
     .filter((result) => result.score > 0)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+
+      if (b.place.rating !== a.place.rating) {
+        return b.place.rating - a.place.rating;
+      }
+
+      const distanceA = parseFloat(a.place.distance);
+      const distanceB = parseFloat(b.place.distance);
+
+      return distanceA - distanceB;
+    })
     .map((result) => result.place);
 }
 
