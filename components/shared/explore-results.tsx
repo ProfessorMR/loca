@@ -8,6 +8,7 @@ import { Map } from "@/components/shared/map";
 import { PlaceCard } from "@/components/shared/place-card";
 import type { Place } from "@/types/place";
 import { List, Map as MapIcon } from "lucide-react";
+import { parseSearchIntent } from "@/lib/search-intent";
 
 type ExploreResultsProps = {
   places: Place[];
@@ -25,6 +26,8 @@ export function ExploreResults({ places }: ExploreResultsProps) {
   const selectedSort = searchParams.get("sort") ?? "recommended";
   const query = searchParams.get("q")?.trim() ?? "";
   const selectedPrice = searchParams.get("price") ?? "all";
+
+  const searchIntent = useMemo(() => parseSearchIntent(query), [query]);
 
   const filteredPlaces = useMemo(() => {
     return places.filter((place) => {
@@ -106,6 +109,36 @@ export function ExploreResults({ places }: ExploreResultsProps) {
 
   return (
     <div className="mt-12">
+      {query && (
+        <div className="mb-6 rounded-2xl border bg-muted/30 p-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Detected intent
+          </p>
+
+          <div className="mt-3 flex flex-wrap gap-2 text-sm">
+            {searchIntent.category && (
+              <span className="rounded-full bg-background px-3 py-1.5">
+                Category: {searchIntent.category}
+              </span>
+            )}
+
+            {searchIntent.priceLevel && (
+              <span className="rounded-full bg-background px-3 py-1.5">
+                Price: {searchIntent.priceLevel}
+              </span>
+            )}
+
+            {searchIntent.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-background px-3 py-1.5"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       <ExploreFilters
         selectedCategory={selectedCategory}
         selectedSort={selectedSort}

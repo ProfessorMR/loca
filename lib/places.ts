@@ -1,4 +1,5 @@
 import type { Place } from "@/types/place";
+import { parseSearchIntent } from "@/lib/search-intent";
 
 export const places: Place[] = [
   {
@@ -46,12 +47,58 @@ export const places: Place[] = [
     latitude: 35.735,
     longitude: 51.425,
   },
+  {
+    id: "4",
+    name: "Corner Coffee",
+    category: "Cafe",
+    tags: ["coffee", "casual", "work-friendly"],
+    rating: 4.4,
+    priceLevel: "$",
+    distance: "1.5 km",
+    image: "/places/cafe.jpg",
+    description:
+      "A casual coffee shop with reliable Wi-Fi and a practical space for getting some work done.",
+    address: "12 Cedar Street",
+    latitude: 35.712,
+    longitude: 51.405,
+  },
+  {
+    id: "5",
+    name: "Riverside Cafe",
+    category: "Cafe",
+    tags: ["coffee", "quiet", "relaxing", "cozy"],
+    rating: 4.5,
+    priceLevel: "$$",
+    distance: "2.4 km",
+    image: "/places/cafe.jpg",
+    description:
+      "A calm cafe by the river with a cozy atmosphere, good coffee, and a relaxing setting.",
+    address: "24 River Road",
+    latitude: 35.728,
+    longitude: 51.418,
+  },
+  {
+    id: "6",
+    name: "City Garden",
+    category: "Park",
+    tags: ["nature", "quiet", "outdoor", "relaxing"],
+    rating: 4.3,
+    priceLevel: "Free",
+    distance: "1.8 km",
+    image: "/places/park.jpg",
+    description:
+      "A quiet urban park with open green spaces and a relaxing environment for spending time outdoors.",
+    address: "90 Garden Avenue",
+    latitude: 35.741,
+    longitude: 51.432,
+  },
 ];
 export function getPlaceById(id: string) {
   return places.find((place) => place.id === id);
 }
 
 export function searchPlaces(query: string) {
+  const intent = parseSearchIntent(query);
   const normalizedQuery = query.trim().toLowerCase();
 
   if (!normalizedQuery) {
@@ -60,7 +107,17 @@ export function searchPlaces(query: string) {
 
   const terms = normalizedQuery.split(/\s+/);
 
-  return places
+  const filteredPlaces = places.filter((place) => {
+    const matchesCategory =
+      !intent.category || place.category === intent.category;
+
+    const matchesPrice =
+      !intent.priceLevel || place.priceLevel === intent.priceLevel;
+
+    return matchesCategory && matchesPrice;
+  });
+
+  return filteredPlaces
     .map((place) => {
       const name = place.name.toLowerCase();
       const category = place.category.toLowerCase();
@@ -76,7 +133,7 @@ export function searchPlaces(query: string) {
         ...tags,
       ].join(" ");
 
-      const score = terms.reduce((total, term) => {
+      const textScore = terms.reduce((total, term) => {
         if (name.includes(term)) {
           return total + 4;
         }
@@ -84,6 +141,7 @@ export function searchPlaces(query: string) {
         if (category.includes(term)) {
           return total + 3;
         }
+
         if (description.includes(term)) {
           return total + 2;
         }
@@ -102,6 +160,17 @@ export function searchPlaces(query: string) {
 
         return total;
       }, 0);
+
+      const intentScore =
+        (intent.category && place.category === intent.category ? 8 : 0) +
+        intent.tags.reduce(
+          (total, tag) =>
+            total + (place.tags.some((placeTag) => placeTag === tag) ? 5 : 0),
+          0,
+        ) +
+        (intent.priceLevel && place.priceLevel === intent.priceLevel ? 6 : 0);
+
+      const score = textScore + intentScore;
 
       return {
         place,
