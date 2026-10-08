@@ -109,7 +109,7 @@ export default async function PlacePage({ params }: PlacePageProps) {
                 </div>
               </div>
 
-              <SavePlaceButton />
+              <SavePlaceButton placeId={place.id} />
             </div>
 
             <div className="mt-10 grid gap-8 border-t pt-8 sm:grid-cols-2">

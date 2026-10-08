@@ -24,17 +24,19 @@ export function ExploreResults({ places }: ExploreResultsProps) {
   const selectedCategory = searchParams.get("category") ?? "All";
   const selectedSort = searchParams.get("sort") ?? "recommended";
   const query = searchParams.get("q")?.trim() ?? "";
+  const selectedPrice = searchParams.get("price") ?? "all";
 
   const filteredPlaces = useMemo(() => {
-    if (selectedCategory === "All") {
-      return places;
-    }
+    return places.filter((place) => {
+      const matchesCategory =
+        selectedCategory === "All" || place.category === selectedCategory;
 
-    return places.filter(
-      (place) =>
-        place.category.toLowerCase() === selectedCategory.toLowerCase(),
-    );
-  }, [places, selectedCategory]);
+      const matchesPrice =
+        selectedPrice === "all" || place.priceLevel === selectedPrice;
+
+      return matchesCategory && matchesPrice;
+    });
+  }, [places, selectedCategory, selectedPrice]);
 
   function handleCategoryChange(category: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -43,6 +45,22 @@ export function ExploreResults({ places }: ExploreResultsProps) {
       params.delete("category");
     } else {
       params.set("category", category);
+    }
+
+    setSelectedPlaceId(null);
+
+    const queryString = params.toString();
+
+    router.push(queryString ? `${pathname}?${queryString}` : pathname);
+  }
+
+  function handlePriceChange(price: string) {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (price === "all") {
+      params.delete("price");
+    } else {
+      params.set("price", price);
     }
 
     setSelectedPlaceId(null);
@@ -91,8 +109,10 @@ export function ExploreResults({ places }: ExploreResultsProps) {
       <ExploreFilters
         selectedCategory={selectedCategory}
         selectedSort={selectedSort}
+        selectedPrice={selectedPrice}
         onCategoryChange={handleCategoryChange}
         onSortChange={handleSortChange}
+        onPriceChange={handlePriceChange}
       />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">

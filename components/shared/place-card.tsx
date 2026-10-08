@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Star } from "lucide-react";
+import { Bookmark, MapPin, Star } from "lucide-react";
 
+import { useFavorites } from "@/components/shared/favorites-provider";
 import type { Place } from "@/types/place";
 
 type PlaceCardProps = {
@@ -17,6 +20,10 @@ export function PlaceCard({
   onHover,
   onClick,
 }: PlaceCardProps) {
+  const { isFavorite, toggleFavorite } = useFavorites();
+
+  const saved = isFavorite(place.id);
+
   return (
     <Link
       href={`/places/${place.id}`}
@@ -35,6 +42,24 @@ export function PlaceCard({
             sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
+
+          <button
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              toggleFavorite(place.id);
+            }}
+            aria-label={saved ? "Remove from saved places" : "Save place"}
+            aria-pressed={saved}
+            className={`absolute right-4 top-4 z-10 flex size-9 items-center justify-center rounded-full backdrop-blur-sm transition-colors ${
+              saved
+                ? "bg-foreground text-background"
+                : "bg-background/90 text-foreground hover:bg-background"
+            }`}
+          >
+            <Bookmark className={`size-4 ${saved ? "fill-current" : ""}`} />
+          </button>
 
           <div className="absolute left-4 top-4 rounded-full bg-background/90 px-3 py-1.5 text-xs font-medium backdrop-blur-sm">
             {place.category}
