@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Bookmark } from "lucide-react";
 
 const navigation = [
   { label: "Explore", href: "/explore" },
-  { label: "Categories", href: "/categories" },
+  { label: "Saved", href: "/saved" },
   { label: "Collections", href: "/collections" },
 ];
 
