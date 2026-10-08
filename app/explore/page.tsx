@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ExploreResults } from "@/components/shared/explore-results";
 import { SearchBar } from "@/components/shared/search-bar";
 import { searchPlaces } from "@/lib/places";
+import { SearchSuggestions } from "@/components/shared/search-suggestions";
 
 type ExplorePageProps = {
   searchParams: Promise<{
@@ -47,6 +48,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
 
         <div className="my-10">
           <SearchBar initialQuery={query} />
+          {!query && <SearchSuggestions />}
         </div>
 
         <Suspense

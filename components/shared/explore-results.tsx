@@ -8,7 +8,6 @@ import { Map } from "@/components/shared/map";
 import { PlaceCard } from "@/components/shared/place-card";
 import type { Place } from "@/types/place";
 import { List, Map as MapIcon } from "lucide-react";
-import { parseSearchIntent } from "@/lib/search-intent";
 
 type ExploreResultsProps = {
   places: Place[];
@@ -26,8 +25,6 @@ export function ExploreResults({ places }: ExploreResultsProps) {
   const selectedSort = searchParams.get("sort") ?? "recommended";
   const query = searchParams.get("q")?.trim() ?? "";
   const selectedPrice = searchParams.get("price") ?? "all";
-
-  const searchIntent = useMemo(() => parseSearchIntent(query), [query]);
 
   const filteredPlaces = useMemo(() => {
     return places.filter((place) => {
@@ -109,36 +106,6 @@ export function ExploreResults({ places }: ExploreResultsProps) {
 
   return (
     <div className="mt-12">
-      {query && (
-        <div className="mb-6 rounded-2xl border bg-muted/30 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Detected intent
-          </p>
-
-          <div className="mt-3 flex flex-wrap gap-2 text-sm">
-            {searchIntent.category && (
-              <span className="rounded-full bg-background px-3 py-1.5">
-                Category: {searchIntent.category}
-              </span>
-            )}
-
-            {searchIntent.priceLevel && (
-              <span className="rounded-full bg-background px-3 py-1.5">
-                Price: {searchIntent.priceLevel}
-              </span>
-            )}
-
-            {searchIntent.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-background px-3 py-1.5"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
       <ExploreFilters
         selectedCategory={selectedCategory}
         selectedSort={selectedSort}
@@ -208,13 +175,13 @@ export function ExploreResults({ places }: ExploreResultsProps) {
               </div>
 
               <h2 className="mt-5 text-lg font-semibold tracking-tight">
-                No places found
+                {query ? "Nothing matched your search" : "No places found"}
               </h2>
 
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
                 {query
-                  ? `We couldn't find any places matching "${query}".`
-                  : "We couldn't find any places matching your current filters."}
+                  ? `We couldn't find any places matching "${query}". Try a broader search or explore one of these categories.`
+                  : "Try changing your filters or explore one of these categories."}
               </p>
 
               <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -233,6 +200,14 @@ export function ExploreResults({ places }: ExploreResultsProps) {
                   </button>
                 ))}
               </div>
+
+              <button
+                type="button"
+                onClick={() => router.push(pathname)}
+                className="mt-4 text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700 hover:underline"
+              >
+                Clear search and filters
+              </button>
             </div>
           )}
         </section>
