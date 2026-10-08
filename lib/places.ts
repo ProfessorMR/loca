@@ -1,5 +1,6 @@
+import { rankPlaces } from "@/lib/place-ranking";
+import { extractSearchIntent } from "@/lib/search-intent-service";
 import type { Place } from "@/types/place";
-import { parseSearchIntent } from "@/lib/search-intent";
 
 export const places: Place[] = [
   {
@@ -93,19 +94,18 @@ export const places: Place[] = [
     longitude: 51.432,
   },
 ];
+
 export function getPlaceById(id: string) {
   return places.find((place) => place.id === id);
 }
 
 export function searchPlaces(query: string) {
-  const intent = parseSearchIntent(query);
+  const intent = extractSearchIntent(query);
   const normalizedQuery = query.trim().toLowerCase();
 
   if (!normalizedQuery) {
     return places;
   }
-
-  const terms = normalizedQuery.split(/\s+/);
 
   const filteredPlaces = places.filter((place) => {
     const matchesCategory =
@@ -117,82 +117,7 @@ export function searchPlaces(query: string) {
     return matchesCategory && matchesPrice;
   });
 
-  return filteredPlaces
-    .map((place) => {
-      const name = place.name.toLowerCase();
-      const category = place.category.toLowerCase();
-      const description = place.description.toLowerCase();
-      const address = place.address.toLowerCase();
-      const tags = place.tags.map((tag) => tag.toLowerCase());
-
-      const searchableText = [
-        name,
-        category,
-        description,
-        address,
-        ...tags,
-      ].join(" ");
-
-      const textScore = terms.reduce((total, term) => {
-        if (name.includes(term)) {
-          return total + 4;
-        }
-
-        if (category.includes(term)) {
-          return total + 3;
-        }
-
-        if (description.includes(term)) {
-          return total + 2;
-        }
-
-        if (tags.some((tag) => tag.includes(term))) {
-          return total + 3;
-        }
-
-        if (address.includes(term)) {
-          return total + 1;
-        }
-
-        if (searchableText.includes(term)) {
-          return total + 1;
-        }
-
-        return total;
-      }, 0);
-
-      const intentScore =
-        (intent.category && place.category === intent.category ? 8 : 0) +
-        intent.tags.reduce(
-          (total, tag) =>
-            total + (place.tags.some((placeTag) => placeTag === tag) ? 5 : 0),
-          0,
-        ) +
-        (intent.priceLevel && place.priceLevel === intent.priceLevel ? 6 : 0);
-
-      const score = textScore + intentScore;
-
-      return {
-        place,
-        score,
-      };
-    })
-    .filter((result) => result.score > 0)
-    .sort((a, b) => {
-      if (b.score !== a.score) {
-        return b.score - a.score;
-      }
-
-      if (b.place.rating !== a.place.rating) {
-        return b.place.rating - a.place.rating;
-      }
-
-      const distanceA = parseFloat(a.place.distance);
-      const distanceB = parseFloat(b.place.distance);
-
-      return distanceA - distanceB;
-    })
-    .map((result) => result.place);
+  return rankPlaces(filteredPlaces, intent);
 }
 
 export function getPlaceCategories() {

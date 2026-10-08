@@ -1,4 +1,5 @@
 import type { SearchIntent } from "@/types/search";
+import type { SearchIntentExtractor } from "@/lib/search-intent-extractor";
 
 import {
   categoryKeywords,
@@ -43,3 +44,9 @@ export function parseSearchIntent(query: string): SearchIntent {
     sort: "recommended",
   };
 }
+
+export const ruleBasedIntentExtractor: SearchIntentExtractor = {
+  extract(query) {
+    return parseSearchIntent(query);
+  },
+};
