@@ -1,11 +1,6 @@
 import { Suspense } from "react";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 
-import { ExploreResults } from "@/components/shared/explore-results";
-import { SearchBar } from "@/components/shared/search-bar";
-import { searchPlaces } from "@/lib/places";
-import { SearchSuggestions } from "@/components/shared/search-suggestions";
+import { ExploreContent } from "./explore-content";
 
 type ExplorePageProps = {
   searchParams: Promise<{
@@ -13,55 +8,27 @@ type ExplorePageProps = {
   }>;
 };
 
-export default async function ExplorePage({ searchParams }: ExplorePageProps) {
-  const { q } = await searchParams;
-  const query = q?.trim() ?? "";
-  const results = searchPlaces(query);
-  const resultsCount = results.length;
-
+export default function ExplorePage({ searchParams }: ExplorePageProps) {
   return (
-    <main className="min-h-screen">
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-          Back
-        </Link>
+    <Suspense
+      fallback={
+        <main className="min-h-screen">
+          <div className="mx-auto max-w-7xl px-6 py-10">
+            <div className="h-6 w-24 animate-pulse rounded bg-muted" />
+            <div className="mt-12 h-12 max-w-xl animate-pulse rounded bg-muted" />
+            <div className="mt-4 h-5 max-w-md animate-pulse rounded bg-muted" />
 
-        <div className="mt-12">
-          <p className="text-sm font-medium text-emerald-600">Explore</p>
+            <div className="my-10 h-12 animate-pulse rounded-xl bg-muted" />
 
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
-            {query ? `Results for "${query}"` : "Find your next place."}
-          </h1>
-
-          <p className="mt-4 max-w-xl text-muted-foreground">
-            {query
-              ? `${resultsCount} ${
-                  resultsCount === 1 ? "place" : "places"
-                } found`
-              : "Search for places based on what you're looking for."}
-          </p>
-        </div>
-
-        <div className="my-10">
-          <SearchBar initialQuery={query} />
-          {!query && <SearchSuggestions />}
-        </div>
-
-        <Suspense
-          fallback={
             <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
               <div className="h-96 animate-pulse rounded-2xl bg-muted" />
               <div className="hidden h-[600px] animate-pulse rounded-3xl bg-muted lg:block" />
             </div>
-          }
-        >
-          <ExploreResults places={results} />
-        </Suspense>
-      </div>
-    </main>
+          </div>
+        </main>
+      }
+    >
+      <ExploreContent searchParams={searchParams} />
+    </Suspense>
   );
 }

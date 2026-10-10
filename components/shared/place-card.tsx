@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Bookmark, MapPin, Star } from "lucide-react";
-
 import { useFavorites } from "@/components/shared/favorites-provider";
 import type { Place } from "@/types/place";
 
@@ -12,6 +11,7 @@ type PlaceCardProps = {
   isSelected?: boolean;
   onHover?: () => void;
   onClick?: () => void;
+  isPriority?: boolean;
 };
 
 export function PlaceCard({
@@ -19,9 +19,9 @@ export function PlaceCard({
   isSelected = false,
   onHover,
   onClick,
+  isPriority = false,
 }: PlaceCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
-
   const saved = isFavorite(place.id);
 
   return (
@@ -40,6 +40,7 @@ export function PlaceCard({
             alt={place.name}
             fill
             sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+            loading={isPriority ? "eager" : "lazy"}
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
@@ -82,9 +83,7 @@ export function PlaceCard({
 
           <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
             <span>{place.priceLevel}</span>
-
             <span>·</span>
-
             <span className="flex items-center gap-1">
               <MapPin className="size-3.5" />
               {place.distance}

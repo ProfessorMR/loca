@@ -99,25 +99,16 @@ export function getPlaceById(id: string) {
   return places.find((place) => place.id === id);
 }
 
-export function searchPlaces(query: string) {
-  const intent = extractSearchIntent(query);
+export async function searchPlaces(query: string): Promise<Place[]> {
   const normalizedQuery = query.trim().toLowerCase();
 
   if (!normalizedQuery) {
     return places;
   }
 
-  const filteredPlaces = places.filter((place) => {
-    const matchesCategory =
-      !intent.category || place.category === intent.category;
+  const intent = await extractSearchIntent(query);
 
-    const matchesPrice =
-      !intent.priceLevel || place.priceLevel === intent.priceLevel;
-
-    return matchesCategory && matchesPrice;
-  });
-
-  return rankPlaces(filteredPlaces, intent);
+  return rankPlaces(places, intent);
 }
 
 export function getPlaceCategories() {

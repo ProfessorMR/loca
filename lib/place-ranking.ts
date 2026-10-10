@@ -7,83 +7,61 @@ type RankedPlace = {
 };
 
 export function rankPlaces(places: Place[], intent: SearchIntent): Place[] {
-  const normalizedQuery = intent.query.toLowerCase().trim();
-
-  const terms = normalizedQuery ? normalizedQuery.split(/\s+/) : [];
-
   const rankedPlaces = places
+    .filter((place) => {
+      if (intent.category && place.category !== intent.category) {
+        return false;
+      }
+
+      return true;
+    })
     .map((place): RankedPlace => {
-      const name = place.name.toLowerCase();
-      const category = place.category.toLowerCase();
-      const description = place.description.toLowerCase();
-      const address = place.address.toLowerCase();
       const tags = place.tags.map((tag) => tag.toLowerCase());
 
-      const searchableText = [
-        name,
-        category,
-        description,
-        address,
-        ...tags,
-      ].join(" ");
-
-      const textScore = terms.reduce((total, term) => {
-        if (name.includes(term)) {
-          return total + 4;
-        }
-
-        if (category.includes(term)) {
-          return total + 3;
-        }
-
-        if (tags.some((tag) => tag.includes(term))) {
-          return total + 3;
-        }
-
-        if (description.includes(term)) {
-          return total + 2;
-        }
-
-        if (address.includes(term)) {
-          return total + 1;
-        }
-
-        if (searchableText.includes(term)) {
-          return total + 1;
-        }
-
-        return total;
+      const tagScore = intent.tags.reduce((total, tag) => {
+        return total + (tags.includes(tag.toLowerCase()) ? 10 : 0);
       }, 0);
 
-      const intentScore =
-        (intent.category && place.category === intent.category ? 8 : 0) +
-        intent.tags.reduce(
-          (total, tag) =>
-            total + (place.tags.some((placeTag) => placeTag === tag) ? 5 : 0),
-          0,
-        ) +
-        (intent.priceLevel && place.priceLevel === intent.priceLevel ? 6 : 0);
+      const priceScore =
+        intent.priceLevel && place.priceLevel === intent.priceLevel ? 4 : 0;
 
-      return {
-        place,
-        score: textScore + intentScore,
-      };
+      const query = intent.query.toLowerCase().trim();
+      const text = [
+        place.name,
+        place.category,
+        place.description,
+        place.address,
+        ...place.tags,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      const textScore = query
+        .split(/\s+/)
+        .filter(Boolean)
+        .reduce((total, term) => total + (text.includes(term) ? 1 : 0), 0);
+
+      const score = tagScore + priceScore + textScore;
+
+      return { place, score };
     })
-    .filter((result) => result.score > 0);
+    .filter(({ score }) => score > 0);
 
   return rankedPlaces
     .sort((a, b) => {
-      if (intent.sort === "rating") {
-        if (b.place.rating !== a.place.rating) {
-          return b.place.rating - a.place.rating;
-        }
+      if (intent.sort === "rating" && b.place.rating !== a.place.rating) {
+        return b.place.rating - a.place.rating;
       }
 
       if (intent.sort === "distance") {
         const distanceA = Number.parseFloat(a.place.distance);
         const distanceB = Number.parseFloat(b.place.distance);
 
-        if (distanceA !== distanceB) {
+        if (
+          Number.isFinite(distanceA) &&
+          Number.isFinite(distanceB) &&
+          distanceA !== distanceB
+        ) {
           return distanceA - distanceB;
         }
       }
@@ -92,14 +70,7 @@ export function rankPlaces(places: Place[], intent: SearchIntent): Place[] {
         return b.score - a.score;
       }
 
-      if (b.place.rating !== a.place.rating) {
-        return b.place.rating - a.place.rating;
-      }
-
-      const distanceA = Number.parseFloat(a.place.distance);
-      const distanceB = Number.parseFloat(b.place.distance);
-
-      return distanceA - distanceB;
+      return b.place.rating - a.place.rating;
     })
-    .map((result) => result.place);
+    .map(({ place }) => place);
 }

@@ -158,10 +158,11 @@ export function ExploreResults({ places }: ExploreResultsProps) {
 
           {displayedPlaces.length > 0 ? (
             <div className="mt-5 grid gap-5 md:grid-cols-2">
-              {displayedPlaces.map((place) => (
+              {displayedPlaces.map((place, index) => (
                 <PlaceCard
                   key={place.id}
                   place={place}
+                  isPriority={index === 0}
                   isSelected={selectedPlaceId === place.id}
                   onHover={() => setSelectedPlaceId(place.id)}
                   onClick={() => setSelectedPlaceId(place.id)}
@@ -190,8 +191,14 @@ export function ExploreResults({ places }: ExploreResultsProps) {
                     key={suggestion}
                     type="button"
                     onClick={() => {
-                      const params = new URLSearchParams();
-                      params.set("q", suggestion);
+                      const params = new URLSearchParams(
+                        searchParams.toString(),
+                      );
+
+                      params.delete("q");
+                      params.delete("price");
+                      params.set("category", suggestion);
+
                       router.push(`${pathname}?${params.toString()}`);
                     }}
                     className="rounded-full border bg-background px-4 py-2 text-sm font-medium transition-colors hover:border-foreground/30 hover:bg-muted"
