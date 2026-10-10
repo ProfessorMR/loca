@@ -4,12 +4,20 @@ import type { SearchIntent } from "@/types/search";
 type RankedPlace = {
   place: Place;
   score: number;
+  matchedTags: number;
 };
 
 export function rankPlaces(places: Place[], intent: SearchIntent): Place[] {
+  const requestedTags = intent.tags.map((tag) => tag.toLowerCase());
+  const query = intent.query.toLowerCase().trim();
+
   const rankedPlaces = places
     .filter((place) => {
       if (intent.category && place.category !== intent.category) {
+        return false;
+      }
+
+      if (intent.priceLevel && place.priceLevel !== intent.priceLevel) {
         return false;
       }
 
@@ -18,14 +26,15 @@ export function rankPlaces(places: Place[], intent: SearchIntent): Place[] {
     .map((place): RankedPlace => {
       const tags = place.tags.map((tag) => tag.toLowerCase());
 
-      const tagScore = intent.tags.reduce((total, tag) => {
-        return total + (tags.includes(tag.toLowerCase()) ? 10 : 0);
-      }, 0);
+      const matchedTags = requestedTags.filter((tag) =>
+        tags.includes(tag),
+      ).length;
+
+      const tagScore = matchedTags * 10;
 
       const priceScore =
         intent.priceLevel && place.priceLevel === intent.priceLevel ? 4 : 0;
 
-      const query = intent.query.toLowerCase().trim();
       const text = [
         place.name,
         place.category,
@@ -41,11 +50,18 @@ export function rankPlaces(places: Place[], intent: SearchIntent): Place[] {
         .filter(Boolean)
         .reduce((total, term) => total + (text.includes(term) ? 1 : 0), 0);
 
-      const score = tagScore + priceScore + textScore;
-
-      return { place, score };
+      return {
+        place,
+        matchedTags,
+        score: tagScore + priceScore + textScore,
+      };
     })
-    .filter(({ score }) => score > 0);
+    .filter(
+      ({ score, place }) =>
+        score > 0 ||
+        Boolean(intent.category && place.category === intent.category) ||
+        Boolean(intent.priceLevel && place.priceLevel === intent.priceLevel),
+    );
 
   return rankedPlaces
     .sort((a, b) => {
@@ -64,6 +80,10 @@ export function rankPlaces(places: Place[], intent: SearchIntent): Place[] {
         ) {
           return distanceA - distanceB;
         }
+      }
+
+      if (b.matchedTags !== a.matchedTags) {
+        return b.matchedTags - a.matchedTags;
       }
 
       if (b.score !== a.score) {

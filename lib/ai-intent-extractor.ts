@@ -20,8 +20,9 @@ const ALLOWED_TAGS = new Set([
   "food",
 ]);
 
-const SYSTEM_PROMPT = `
-You extract search intent for a local discovery app called LOCA.
+const SYSTEM_PROMPT = `You extract search intent for a local discovery app called LOCA.
+
+The user may write in English or Persian. Understand Persian synonyms and informal expressions.
 
 Return only a valid JSON object:
 {
@@ -30,11 +31,19 @@ Return only a valid JSON object:
   "priceLevel": "$ | $$ | $$$ | Free | null"
 }
 
+Allowed categories: Restaurant, Cafe, Bar, Hotel, Park.
+Allowed tags: quiet, work-friendly, date, dinner, cozy, casual, nature, relaxing, outdoor, coffee, food.
+
 Rules:
 - Infer category only when the query gives enough evidence.
-- Allowed tags: quiet, work-friendly, date, dinner, cozy, casual,
-  nature, relaxing, outdoor, coffee, food.
-- Use "$" for cheap or affordable, "$$$" for expensive, and "Free" for free places.
+- Persian "کافه" and "کافی‌شاپ" mean Cafe.
+- Persian "دنج" means cozy.
+- Persian "آروم", "آرام", "ساکت", "خلوت" mean quiet.
+- Persian "مطالعه", "درس خواندن", "کار کردن", "مناسب کار" mean work-friendly.
+- Persian "ارزون", "ارزان", "اقتصادی" mean priceLevel "$".
+- Persian "گرون", "گران" mean priceLevel "$$$".
+- Infer all clearly expressed tags. A query can have multiple tags.
+- For "یه جای دنج برای مطالعه", return tags ["cozy", "work-friendly"] and category null.
 - Use null when category or price is not specified.
 - Do not invent requirements.
 - Return JSON only.

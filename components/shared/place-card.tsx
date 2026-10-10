@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Bookmark, MapPin, Star } from "lucide-react";
 import { useFavorites } from "@/components/shared/favorites-provider";
 import type { Place } from "@/types/place";
+import type { SearchIntent } from "@/types/search";
 
 type PlaceCardProps = {
   place: Place;
@@ -12,6 +13,21 @@ type PlaceCardProps = {
   onHover?: () => void;
   onClick?: () => void;
   isPriority?: boolean;
+  intent?: SearchIntent;
+};
+
+const tagLabels: Record<string, string> = {
+  quiet: "Quiet",
+  "work-friendly": "Work-friendly",
+  cozy: "Cozy",
+  relaxing: "Relaxing",
+  casual: "Casual",
+  nature: "Nature",
+  outdoor: "Outdoor",
+  dinner: "Dinner",
+  coffee: "Coffee",
+  food: "Food",
+  date: "Date-friendly",
 };
 
 export function PlaceCard({
@@ -20,9 +36,27 @@ export function PlaceCard({
   onHover,
   onClick,
   isPriority = false,
+  intent,
 }: PlaceCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const saved = isFavorite(place.id);
+
+  const hasSearch = Boolean(intent?.query.trim());
+
+  const reasonTags = place.tags
+    .filter((tag) => {
+      if (!tagLabels[tag]) return false;
+
+      if (!hasSearch) return true;
+
+      return intent?.tags.includes(tag) ?? false;
+    })
+    .slice(0, 3);
+
+  const matchesPrice =
+    hasSearch &&
+    Boolean(intent?.priceLevel) &&
+    place.priceLevel === intent?.priceLevel;
 
   return (
     <Link
@@ -89,6 +123,31 @@ export function PlaceCard({
               {place.distance}
             </span>
           </div>
+
+          {(reasonTags.length > 0 || matchesPrice) && (
+            <div className="mt-4 border-t pt-3">
+              <p className="mb-2 text-xs font-medium text-muted-foreground">
+                {hasSearch ? "Why this matches" : "Features"}
+              </p>
+
+              <div className="flex flex-wrap gap-1.5">
+                {reasonTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400"
+                  >
+                    {tagLabels[tag]}
+                  </span>
+                ))}
+
+                {matchesPrice && (
+                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                    Budget match
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </article>
     </Link>

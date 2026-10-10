@@ -7,13 +7,15 @@ import { ExploreFilters } from "@/components/shared/explore-filters";
 import { Map } from "@/components/shared/map";
 import { PlaceCard } from "@/components/shared/place-card";
 import type { Place } from "@/types/place";
+import type { SearchIntent } from "@/types/search";
 import { List, Map as MapIcon } from "lucide-react";
 
 type ExploreResultsProps = {
   places: Place[];
+  intent: SearchIntent | null;
 };
 
-export function ExploreResults({ places }: ExploreResultsProps) {
+export function ExploreResults({ places, intent }: ExploreResultsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -50,7 +52,6 @@ export function ExploreResults({ places }: ExploreResultsProps) {
     setSelectedPlaceId(null);
 
     const queryString = params.toString();
-
     router.push(queryString ? `${pathname}?${queryString}` : pathname);
   }
 
@@ -66,7 +67,6 @@ export function ExploreResults({ places }: ExploreResultsProps) {
     setSelectedPlaceId(null);
 
     const queryString = params.toString();
-
     router.push(queryString ? `${pathname}?${queryString}` : pathname);
   }
 
@@ -82,7 +82,6 @@ export function ExploreResults({ places }: ExploreResultsProps) {
     setSelectedPlaceId(null);
 
     const queryString = params.toString();
-
     router.push(queryString ? `${pathname}?${queryString}` : pathname);
   }
 
@@ -162,6 +161,7 @@ export function ExploreResults({ places }: ExploreResultsProps) {
                 <PlaceCard
                   key={place.id}
                   place={place}
+                  intent={intent ?? undefined}
                   isPriority={index === 0}
                   isSelected={selectedPlaceId === place.id}
                   onHover={() => setSelectedPlaceId(place.id)}

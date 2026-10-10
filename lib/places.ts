@@ -1,6 +1,7 @@
 import { rankPlaces } from "@/lib/place-ranking";
 import { extractSearchIntent } from "@/lib/search-intent-service";
 import type { Place } from "@/types/place";
+import type { SearchIntent } from "@/types/search";
 
 export const places: Place[] = [
   {
@@ -22,7 +23,7 @@ export const places: Place[] = [
     id: "2",
     name: "Morning Roast",
     category: "Cafe",
-    tags: ["coffee", "work-friendly", "quiet", "casual"],
+    tags: ["coffee", "work-friendly", "quiet", "cozy", "casual"],
     rating: 4.7,
     priceLevel: "$$",
     distance: "0.8 km",
@@ -99,16 +100,24 @@ export function getPlaceById(id: string) {
   return places.find((place) => place.id === id);
 }
 
-export async function searchPlaces(query: string): Promise<Place[]> {
+export async function searchPlaces(
+  query: string,
+): Promise<{ places: Place[]; intent: SearchIntent | null }> {
   const normalizedQuery = query.trim().toLowerCase();
 
   if (!normalizedQuery) {
-    return places;
+    return {
+      places,
+      intent: null,
+    };
   }
 
   const intent = await extractSearchIntent(query);
 
-  return rankPlaces(places, intent);
+  return {
+    places: rankPlaces(places, intent),
+    intent,
+  };
 }
 
 export function getPlaceCategories() {

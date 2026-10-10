@@ -19,7 +19,7 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
   const params = await searchParams;
   const query = params.q ?? "";
 
-  const results = await searchPlaces(query);
+  const { places: results, intent } = await searchPlaces(query);
   const resultsCount = results.length;
 
   return (
@@ -54,7 +54,7 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
           {!query && <SearchSuggestions />}
         </div>
 
-        <ExploreResults places={results} />
+        <ExploreResults places={results} intent={intent} />
       </div>
     </main>
   );

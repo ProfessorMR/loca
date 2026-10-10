@@ -4,12 +4,21 @@ export const categoryKeywords: Record<string, string> = {
   cafe: "Cafe",
   cafes: "Cafe",
   coffee: "Cafe",
+  "coffee shop": "Cafe",
   bar: "Bar",
   bars: "Bar",
   hotel: "Hotel",
   hotels: "Hotel",
   park: "Park",
   parks: "Park",
+
+  کافه: "Cafe",
+  "کافی شاپ": "Cafe",
+  کافی‌شاپ: "Cafe",
+  رستوران: "Restaurant",
+  بار: "Bar",
+  هتل: "Hotel",
+  پارک: "Park",
 };
 
 export const tagKeywords: Record<string, string> = {
@@ -29,6 +38,32 @@ export const tagKeywords: Record<string, string> = {
   nature: "nature",
   relaxing: "relaxing",
   outdoor: "outdoor",
+
+  آروم: "quiet",
+  آرام: "quiet",
+  ساکت: "quiet",
+  خلوت: "quiet",
+  "بی سر و صدا": "quiet",
+  بی‌سروصدا: "quiet",
+
+  کار: "work-friendly",
+  "کار کردن": "work-friendly",
+  کارکردن: "work-friendly",
+  "مناسب کار": "work-friendly",
+  "برای کار": "work-friendly",
+  مطالعه: "work-friendly",
+  "درس خواندن": "work-friendly",
+
+  قرار: "date",
+  "قرار عاشقانه": "date",
+  رمانتیک: "date",
+
+  دنج: "cozy",
+  راحت: "cozy",
+  خودمونی: "casual",
+  طبیعت: "nature",
+  "فضای باز": "outdoor",
+  استراحت: "relaxing",
 };
 
 export const priceKeywords: Record<string, string> = {
@@ -39,19 +74,52 @@ export const priceKeywords: Record<string, string> = {
   inexpensive: "$",
   expensive: "$$$",
   pricey: "$$$",
+
+  ارزون: "$",
+  ارزان: "$",
+  اقتصادی: "$",
+  "مقرون به صرفه": "$",
+  مقرون‌به‌صرفه: "$",
+  گرون: "$$$",
+  گران: "$$$",
 };
 
 export const intentPhrases = [
   {
-    phrases: ["work", "working", "workspace", "coworking", "work from"],
+    phrases: [
+      "work",
+      "working",
+      "workspace",
+      "coworking",
+      "work from",
+      "کار",
+      "کار کردن",
+      "کارکردن",
+      "مناسب کار",
+      "برای کار",
+      "مطالعه",
+      "درس خواندن",
+    ],
     tag: "work-friendly",
   },
   {
-    phrases: ["quiet", "calm", "peaceful", "somewhere quiet", "somewhere calm"],
+    phrases: [
+      "quiet",
+      "calm",
+      "peaceful",
+      "somewhere quiet",
+      "somewhere calm",
+      "آروم",
+      "آرام",
+      "ساکت",
+      "خلوت",
+      "بی سر و صدا",
+      "بی‌سروصدا",
+    ],
     tag: "quiet",
   },
   {
-    phrases: ["date", "date night", "romantic"],
+    phrases: ["date", "date night", "romantic", "قرار", "رمانتیک"],
     tag: "date",
   },
 ];
@@ -66,6 +134,9 @@ export const categoryPhrases: Record<string, string[]> = {
     "workspace",
     "coworking",
     "coffee shop",
+    "کافه",
+    "کافی شاپ",
+    "کافی‌شاپ",
   ],
   Restaurant: [
     "restaurant",
@@ -75,8 +146,21 @@ export const categoryPhrases: Record<string, string[]> = {
     "food",
     "eat",
     "eating",
+    "رستوران",
+    "غذا",
+    "ناهار",
+    "شام",
   ],
-  Bar: ["bar", "bars", "drinks", "drink", "nightlife"],
-  Hotel: ["hotel", "hotels", "stay", "overnight"],
-  Park: ["park", "parks", "nature", "outdoor", "green space"],
+  Bar: ["bar", "bars", "drinks", "drink", "nightlife", "بار"],
+  Hotel: ["hotel", "hotels", "stay", "overnight", "هتل", "اقامت"],
+  Park: [
+    "park",
+    "parks",
+    "nature",
+    "outdoor",
+    "green space",
+    "پارک",
+    "طبیعت",
+    "فضای باز",
+  ],
 };
