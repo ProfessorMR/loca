@@ -532,17 +532,28 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 
 export const PlaceScalarFieldEnum = {
   id: 'id',
+  osmId: 'osmId',
+  source: 'source',
   name: 'name',
   category: 'category',
   tags: 'tags',
-  rating: 'rating',
-  priceLevel: 'priceLevel',
-  distance: 'distance',
-  image: 'image',
-  description: 'description',
   address: 'address',
   latitude: 'latitude',
   longitude: 'longitude',
+  description: 'description',
+  image: 'image',
+  imageSource: 'imageSource',
+  imageAttribution: 'imageAttribution',
+  imageLicense: 'imageLicense',
+  rating: 'rating',
+  ratingCount: 'ratingCount',
+  ratingSource: 'ratingSource',
+  priceLevel: 'priceLevel',
+  distance: 'distance',
+  website: 'website',
+  phone: 'phone',
+  openingHours: 'openingHours',
+  wikimediaCommons: 'wikimediaCommons',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -609,20 +620,6 @@ export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMode
 
 
 /**
- * Reference to a field of type 'DateTime'
- */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
-    
-
-
-/**
- * Reference to a field of type 'DateTime[]'
- */
-export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
-
-
-/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -633,6 +630,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime'
+ */
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime[]'
+ */
+export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
     
 
 /**

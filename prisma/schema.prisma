@@ -8,22 +8,40 @@ datasource db {
   provider = "postgresql"
 }
 
+
 model Place {
   id          String   @id @default(cuid())
+  osmId       String?  @unique
+  source      String   @default("openstreetmap")
+
   name        String
   category    String
   tags        String[] @default([])
-  rating      Float    @default(0)
-  priceLevel  String?
-  distance    String?
-  image       String?
-  description String?
   address     String?
   latitude    Float?
   longitude   Float?
+
+  description String?
+  image       String?
+  imageSource String?
+  imageAttribution String?
+  imageLicense String?
+
+  rating      Float?
+  ratingCount Int?
+  ratingSource String?
+  priceLevel  String?
+  distance    String?
+
+  website          String?
+  phone            String?
+  openingHours     String?
+  wikimediaCommons String?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([category])
   @@index([rating])
+  @@index([source])
 }

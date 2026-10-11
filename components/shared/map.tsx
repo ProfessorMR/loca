@@ -22,6 +22,8 @@ setWorkerUrl(
   ).toString(),
 );
 
+const MAX_MAP_MARKERS = 150;
+
 type MapProps = {
   places: Place[];
   selectedPlaceId: string | null;
@@ -32,6 +34,40 @@ export function Map({ places, selectedPlaceId, onPlaceHover }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
   const markers = useRef<globalThis.Map<string, Marker>>(new globalThis.Map());
+
+  const callbacks = useRef({
+    onPlaceHover,
+    selectedPlaceId,
+  });
+
+  callbacks.current = {
+    onPlaceHover,
+    selectedPlaceId,
+  };
+
+  useEffect(() => {
+    if (!mapContainer.current || map.current) {
+      return;
+    }
+
+    const instance = new MapLibreMap({
+      container: mapContainer.current,
+      style: "https://tiles.openfreemap.org/styles/bright",
+      center: [-73.9857, 40.7484],
+      zoom: 11,
+    });
+
+    map.current = instance;
+    instance.addControl(new NavigationControl(), "top-right");
+
+    return () => {
+      markers.current.forEach((marker) => marker.remove());
+      markers.current.clear();
+
+      instance.remove();
+      map.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     markers.current.forEach((marker, placeId) => {
@@ -46,37 +82,18 @@ export function Map({ places, selectedPlaceId, onPlaceHover }: MapProps) {
   }, [selectedPlaceId]);
 
   useEffect(() => {
-    if (!mapContainer.current || map.current) {
-      return;
-    }
+    const instance = map.current;
 
-    map.current = new MapLibreMap({
-      container: mapContainer.current,
-      style: "https://tiles.openfreemap.org/styles/bright",
-      center: [51.389, 35.6892],
-      zoom: 11,
-    });
-
-    map.current.addControl(new NavigationControl(), "top-right");
-
-    return () => {
-      markers.current.forEach((marker) => marker.remove());
-      markers.current.clear();
-
-      map.current?.remove();
-      map.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!map.current) {
+    if (!instance) {
       return;
     }
 
     markers.current.forEach((marker) => marker.remove());
     markers.current.clear();
 
-    places.forEach((place) => {
+    const mapPlaces = places.slice(0, MAX_MAP_MARKERS);
+
+    mapPlaces.forEach((place) => {
       const markerElement = document.createElement("button");
 
       markerElement.type = "button";
@@ -85,14 +102,6 @@ export function Map({ places, selectedPlaceId, onPlaceHover }: MapProps) {
         "flex size-9 items-center justify-center rounded-full border-2 border-white bg-emerald-600 text-xs font-bold text-white shadow-lg";
       markerElement.textContent = "L";
       markerElement.dataset.placeId = place.id;
-
-      markerElement.addEventListener("mouseenter", () => {
-        onPlaceHover(place.id);
-      });
-
-      markerElement.addEventListener("mouseenter", () => {
-        onPlaceHover(place.id);
-      });
 
       const popup = new Popup({
         offset: 24,
@@ -103,15 +112,22 @@ export function Map({ places, selectedPlaceId, onPlaceHover }: MapProps) {
       }).setHTML(createPlacePopupContent(place));
 
       popup.on("close", () => {
-        onPlaceHover(null);
+        callbacks.current.onPlaceHover(null);
       });
 
       markerElement.addEventListener("mouseenter", () => {
+        callbacks.current.onPlaceHover(place.id);
         markerElement.classList.add("ring-4", "ring-emerald-600/30");
       });
 
       markerElement.addEventListener("mouseleave", () => {
-        markerElement.classList.remove("ring-4", "ring-emerald-600/30");
+        if (callbacks.current.selectedPlaceId !== place.id) {
+          markerElement.classList.remove("ring-4", "ring-emerald-600/30");
+        }
+      });
+
+      markerElement.addEventListener("click", () => {
+        callbacks.current.onPlaceHover(place.id);
       });
 
       const marker = new Marker({
@@ -120,21 +136,7 @@ export function Map({ places, selectedPlaceId, onPlaceHover }: MapProps) {
       })
         .setLngLat([place.longitude, place.latitude])
         .setPopup(popup)
-        .addTo(map.current!);
-
-      markerElement.addEventListener("click", () => {
-        onPlaceHover(place.id);
-      });
-
-      markerElement.addEventListener("mouseenter", () => {
-        markerElement.classList.add("ring-4", "ring-emerald-600/30");
-      });
-
-      markerElement.addEventListener("mouseleave", () => {
-        if (selectedPlaceId !== place.id) {
-          markerElement.classList.remove("ring-4", "ring-emerald-600/30");
-        }
-      });
+        .addTo(instance);
 
       markers.current.set(place.id, marker);
     });
@@ -146,7 +148,9 @@ export function Map({ places, selectedPlaceId, onPlaceHover }: MapProps) {
   }, [places]);
 
   useEffect(() => {
-    if (!map.current || !selectedPlaceId) {
+    const instance = map.current;
+
+    if (!instance || !selectedPlaceId) {
       return;
     }
 
@@ -156,7 +160,7 @@ export function Map({ places, selectedPlaceId, onPlaceHover }: MapProps) {
       return;
     }
 
-    map.current.flyTo({
+    instance.flyTo({
       center: [selectedPlace.longitude, selectedPlace.latitude],
       zoom: 13,
       duration: 500,

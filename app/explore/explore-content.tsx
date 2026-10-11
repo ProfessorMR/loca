@@ -10,6 +10,10 @@ import { SearchSuggestions } from "@/components/shared/search-suggestions";
 type ExploreContentProps = {
   searchParams: Promise<{
     q?: string;
+    page?: string;
+    category?: string;
+    sort?: string;
+    price?: string;
   }>;
 };
 
@@ -19,10 +23,25 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
 
-  const { places: results, intent } = await searchPlaces(query);
-  const resultsCount = results.length;
+  const parsedPage = Number.parseInt(params.page ?? "1", 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-  const categories = await getPlaceCategories();
+  const category = params.category ?? "All";
+  const price = params.price ?? "all";
+  const sort = params.sort ?? "recommended";
+
+  const [searchResult, categories] = await Promise.all([
+    searchPlaces(query, {
+      page,
+      pageSize: 24,
+      category,
+      price,
+      sort,
+    }),
+    getPlaceCategories(),
+  ]);
+
+  const { places, intent, totalCount, totalPages } = searchResult;
 
   return (
     <main className="min-h-screen">
@@ -44,9 +63,7 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
 
           <p className="mt-4 max-w-xl text-muted-foreground">
             {query
-              ? `${resultsCount} ${
-                  resultsCount === 1 ? "place" : "places"
-                } found`
+              ? `${totalCount} ${totalCount === 1 ? "place" : "places"} found`
               : "Search for places based on what you're looking for."}
           </p>
         </div>
@@ -57,9 +74,12 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
         </div>
 
         <ExploreResults
-          places={results}
+          places={places}
           intent={intent}
           categories={categories}
+          totalCount={totalCount}
+          page={page}
+          totalPages={totalPages}
         />
       </div>
     </main>

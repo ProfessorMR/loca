@@ -5,6 +5,10 @@ import { ExploreContent } from "./explore-content";
 type ExplorePageProps = {
   searchParams: Promise<{
     q?: string;
+    page?: string;
+    category?: string;
+    sort?: string;
+    price?: string;
   }>;
 };
 

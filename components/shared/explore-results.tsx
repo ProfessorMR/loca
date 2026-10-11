@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { List, Map as MapIcon } from "lucide-react";
+import { List, LoaderCircle, Map as MapIcon } from "lucide-react";
 
 import { ExploreFilters } from "@/components/shared/explore-filters";
 import { Map } from "@/components/shared/map";
@@ -14,12 +14,18 @@ type ExploreResultsProps = {
   places: Place[];
   intent: SearchIntent | null;
   categories: string[];
+  totalCount: number;
+  page: number;
+  totalPages: number;
 };
 
 export function ExploreResults({
   places,
   intent,
   categories,
+  totalCount,
+  page,
+  totalPages,
 }: ExploreResultsProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -27,23 +33,22 @@ export function ExploreResults({
 
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [showMobileMap, setShowMobileMap] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const selectedCategory = searchParams.get("category") ?? "All";
   const selectedSort = searchParams.get("sort") ?? "recommended";
   const query = searchParams.get("q")?.trim() ?? "";
   const selectedPrice = searchParams.get("price") ?? "all";
 
-  const filteredPlaces = useMemo(() => {
-    return places.filter((place) => {
-      const matchesCategory =
-        selectedCategory === "All" || place.category === selectedCategory;
+  const startIndex = totalCount === 0 ? 0 : (page - 1) * 24 + 1;
+  const endIndex = Math.min(page * 24, totalCount);
 
-      const matchesPrice =
-        selectedPrice === "all" || place.priceLevel === selectedPrice;
-
-      return matchesCategory && matchesPrice;
+  function navigate(url: string) {
+    setSelectedPlaceId(null);
+    startTransition(() => {
+      router.push(url);
     });
-  }, [places, selectedCategory, selectedPrice]);
+  }
 
   function updateSearchParams(
     key: string,
@@ -58,39 +63,53 @@ export function ExploreResults({
       params.set(key, value);
     }
 
+    if (key !== "page") {
+      params.delete("page");
+    }
+
+    const queryString = params.toString();
+    navigate(queryString ? `${pathname}?${queryString}` : pathname);
+  }
+
+  function clearSearch() {
+    const params = new URLSearchParams(searchParams.toString());
+
+    params.delete("q");
+    params.delete("page");
+
+    const queryString = params.toString();
+    navigate(queryString ? `${pathname}?${queryString}` : pathname);
+  }
+
+  function clearSearchAndFilters() {
+    navigate(pathname);
+  }
+
+  function goToPage(nextPage: number) {
+    updateSearchParams("page", String(nextPage), "1");
+  }
+
+  function selectCategory(category: string) {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (category === "All") {
+      params.delete("category");
+    } else {
+      params.set("category", category);
+    }
+
+    // Changing category starts a fresh category search.
+    params.delete("q");
+    params.delete("page");
+
     setSelectedPlaceId(null);
 
     const queryString = params.toString();
-    router.push(queryString ? `${pathname}?${queryString}` : pathname);
+
+    startTransition(() => {
+      router.push(queryString ? `${pathname}?${queryString}` : pathname);
+    });
   }
-
-  const displayedPlaces = useMemo(() => {
-    const sortedPlaces = [...filteredPlaces];
-
-    switch (selectedSort) {
-      case "rating":
-        return sortedPlaces.sort(
-          (a, b) => (b.rating ?? -Infinity) - (a.rating ?? -Infinity),
-        );
-
-      case "distance": {
-        const parseDistance = (distance: string | null) => {
-          if (!distance) return Infinity;
-
-          const value = Number.parseFloat(distance);
-          return Number.isFinite(value) ? value : Infinity;
-        };
-
-        return sortedPlaces.sort(
-          (a, b) => parseDistance(a.distance) - parseDistance(b.distance),
-        );
-      }
-
-      default:
-        return sortedPlaces;
-    }
-  }, [filteredPlaces, selectedSort]);
-
   return (
     <div className="mt-12">
       <ExploreFilters
@@ -98,119 +117,167 @@ export function ExploreResults({
         selectedCategory={selectedCategory}
         selectedSort={selectedSort}
         selectedPrice={selectedPrice}
-        onCategoryChange={(category) =>
-          updateSearchParams("category", category, "All")
-        }
+        onCategoryChange={selectCategory}
         onSortChange={(sort) => updateSearchParams("sort", sort, "recommended")}
         onPriceChange={(price) => updateSearchParams("price", price, "all")}
       />
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
+      <div
+        className="mt-5 flex min-h-6 items-center gap-2 text-sm text-muted-foreground"
+        role="status"
+        aria-live="polite"
+      >
+        {isPending && (
+          <>
+            <LoaderCircle className="size-4 animate-spin" />
+            <span>Updating places...</span>
+          </>
+        )}
+      </div>
+
+      <div
+        aria-busy={isPending}
+        className={`grid gap-8 transition-opacity duration-200 lg:grid-cols-[minmax(0,1fr)_420px] ${
+          isPending ? "pointer-events-none opacity-50" : "opacity-100"
+        }`}
+      >
         <section>
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold tracking-tight">Places</h2>
-
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">
-                {displayedPlaces.length}{" "}
-                {displayedPlaces.length === 1 ? "place" : "places"}
-              </span>
-
-              <button
-                type="button"
-                onClick={() => setShowMobileMap((value) => !value)}
-                className="inline-flex items-center gap-2 rounded-full border bg-background px-3.5 py-2 text-sm font-medium shadow-sm transition-colors hover:border-foreground/30 lg:hidden"
-              >
-                {showMobileMap ? (
-                  <>
-                    <List className="size-4" />
-                    List
-                  </>
-                ) : (
-                  <>
-                    <MapIcon className="size-4" />
-                    Map
-                  </>
-                )}
-              </button>
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight">Places</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {totalCount > 0
+                  ? `Showing ${startIndex}–${endIndex} of ${totalCount} places`
+                  : "0 places found"}
+              </p>
             </div>
+
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => setShowMobileMap((value) => !value)}
+              className="inline-flex items-center gap-2 rounded-full border bg-background px-3.5 py-2 text-sm font-medium shadow-sm transition-colors hover:border-foreground/30 disabled:opacity-50 lg:hidden"
+            >
+              {showMobileMap ? (
+                <>
+                  <List className="size-4" />
+                  List
+                </>
+              ) : (
+                <>
+                  <MapIcon className="size-4" />
+                  Map
+                </>
+              )}
+            </button>
           </div>
 
           {showMobileMap && (
             <div className="mt-5 h-[min(65vh,560px)] min-h-[360px] overflow-hidden rounded-3xl border lg:hidden">
               <Map
-                places={displayedPlaces}
+                places={places}
                 selectedPlaceId={selectedPlaceId}
                 onPlaceHover={setSelectedPlaceId}
               />
             </div>
           )}
 
-          {displayedPlaces.length > 0 ? (
-            <div className="mt-5 grid gap-5 md:grid-cols-2">
-              {displayedPlaces.map((place, index) => (
-                <PlaceCard
-                  key={place.id}
-                  place={place}
-                  intent={intent ?? undefined}
-                  isPriority={index === 0}
-                  isSelected={selectedPlaceId === place.id}
-                  onHover={() => setSelectedPlaceId(place.id)}
-                  onClick={() => setSelectedPlaceId(place.id)}
-                />
-              ))}
-            </div>
+          {places.length > 0 ? (
+            <>
+              <div className="mt-5 grid gap-5 md:grid-cols-2">
+                {places.map((place, index) => (
+                  <PlaceCard
+                    key={place.id}
+                    place={place}
+                    intent={intent ?? undefined}
+                    isPriority={index === 0}
+                    isSelected={selectedPlaceId === place.id}
+                    onHover={() => setSelectedPlaceId(place.id)}
+                    onClick={() => setSelectedPlaceId(place.id)}
+                  />
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <nav
+                  aria-label="Place result pages"
+                  className="mt-8 flex items-center justify-between gap-4"
+                >
+                  <button
+                    type="button"
+                    disabled={page <= 1 || isPending}
+                    onClick={() => goToPage(page - 1)}
+                    className="rounded-full border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    Previous
+                  </button>
+
+                  <span className="text-sm text-muted-foreground">
+                    Page {page} of {totalPages}
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={page >= totalPages || isPending}
+                    onClick={() => goToPage(page + 1)}
+                    className="inline-flex items-center gap-2 rounded-full border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    {isPending && (
+                      <LoaderCircle className="size-4 animate-spin" />
+                    )}
+                    Next
+                  </button>
+                </nav>
+              )}
+            </>
           ) : (
-            <div className="mt-5 rounded-3xl border bg-muted/20 p-10 text-center">
+            <div className="mt-5 rounded-3xl border bg-muted/20 p-8 text-center sm:p-10">
               <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-background shadow-sm">
                 <span className="text-lg">⌕</span>
               </div>
 
               <h2 className="mt-5 text-lg font-semibold tracking-tight">
-                {query ? "Nothing matched your search" : "No places found"}
+                {query ? "No matching places" : "No places found"}
               </h2>
 
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
                 {query
-                  ? `We couldn't find any places matching "${query}". Try a broader search or explore one of these categories.`
-                  : "Try changing your filters or explore one of these categories."}
+                  ? `No places matched "${query}" with your current filters. Try clearing the search or choosing another category.`
+                  : "Try changing your filters to discover more places."}
               </p>
 
               <div className="mt-6 flex flex-wrap justify-center gap-2">
-                {["Cafe", "Restaurant", "Park"].map((suggestion) => (
+                {query && (
                   <button
-                    key={suggestion}
                     type="button"
-                    onClick={() => {
-                      const params = new URLSearchParams(
-                        searchParams.toString(),
-                      );
-                      params.delete("q");
-                      params.delete("price");
-                      params.set("category", suggestion);
-
-                      const queryString = params.toString();
-                      router.push(
-                        queryString ? `${pathname}?${queryString}` : pathname,
-                      );
-                      setSelectedPlaceId(null);
-                    }}
-                    className="rounded-full border bg-background px-4 py-2 text-sm font-medium transition-colors hover:border-foreground/30 hover:bg-muted"
+                    disabled={isPending}
+                    onClick={clearSearch}
+                    className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
                   >
-                    Try {suggestion}
+                    Clear search
+                  </button>
+                )}
+
+                {categories.slice(0, 3).map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => selectCategory(category)}
+                    className="rounded-full border bg-background px-4 py-2 text-sm font-medium transition-colors hover:border-foreground/30 hover:bg-muted disabled:opacity-50"
+                  >
+                    {category}
                   </button>
                 ))}
               </div>
 
               <button
                 type="button"
-                onClick={() => {
-                  setSelectedPlaceId(null);
-                  router.push(pathname);
-                }}
-                className="mt-4 text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700 hover:underline"
+                disabled={isPending}
+                onClick={clearSearchAndFilters}
+                className="mt-4 text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700 hover:underline disabled:opacity-50"
               >
-                Clear search and filters
+                Clear search and all filters
               </button>
             </div>
           )}
@@ -219,7 +286,7 @@ export function ExploreResults({
         <aside className="hidden lg:block">
           <div className="sticky top-6 h-[600px] overflow-hidden rounded-3xl border">
             <Map
-              places={displayedPlaces}
+              places={places}
               selectedPlaceId={selectedPlaceId}
               onPlaceHover={setSelectedPlaceId}
             />

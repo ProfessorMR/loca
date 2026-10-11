@@ -27,62 +27,97 @@ export type AggregatePlace = {
 }
 
 export type PlaceAvgAggregateOutputType = {
-  rating: number | null
   latitude: number | null
   longitude: number | null
+  rating: number | null
+  ratingCount: number | null
 }
 
 export type PlaceSumAggregateOutputType = {
-  rating: number | null
   latitude: number | null
   longitude: number | null
+  rating: number | null
+  ratingCount: number | null
 }
 
 export type PlaceMinAggregateOutputType = {
   id: string | null
+  osmId: string | null
+  source: string | null
   name: string | null
   category: string | null
-  rating: number | null
-  priceLevel: string | null
-  distance: string | null
-  image: string | null
-  description: string | null
   address: string | null
   latitude: number | null
   longitude: number | null
+  description: string | null
+  image: string | null
+  imageSource: string | null
+  imageAttribution: string | null
+  imageLicense: string | null
+  rating: number | null
+  ratingCount: number | null
+  ratingSource: string | null
+  priceLevel: string | null
+  distance: string | null
+  website: string | null
+  phone: string | null
+  openingHours: string | null
+  wikimediaCommons: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
 
 export type PlaceMaxAggregateOutputType = {
   id: string | null
+  osmId: string | null
+  source: string | null
   name: string | null
   category: string | null
-  rating: number | null
-  priceLevel: string | null
-  distance: string | null
-  image: string | null
-  description: string | null
   address: string | null
   latitude: number | null
   longitude: number | null
+  description: string | null
+  image: string | null
+  imageSource: string | null
+  imageAttribution: string | null
+  imageLicense: string | null
+  rating: number | null
+  ratingCount: number | null
+  ratingSource: string | null
+  priceLevel: string | null
+  distance: string | null
+  website: string | null
+  phone: string | null
+  openingHours: string | null
+  wikimediaCommons: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
 
 export type PlaceCountAggregateOutputType = {
   id: number
+  osmId: number
+  source: number
   name: number
   category: number
   tags: number
-  rating: number
-  priceLevel: number
-  distance: number
-  image: number
-  description: number
   address: number
   latitude: number
   longitude: number
+  description: number
+  image: number
+  imageSource: number
+  imageAttribution: number
+  imageLicense: number
+  rating: number
+  ratingCount: number
+  ratingSource: number
+  priceLevel: number
+  distance: number
+  website: number
+  phone: number
+  openingHours: number
+  wikimediaCommons: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -90,62 +125,97 @@ export type PlaceCountAggregateOutputType = {
 
 
 export type PlaceAvgAggregateInputType = {
-  rating?: true
   latitude?: true
   longitude?: true
+  rating?: true
+  ratingCount?: true
 }
 
 export type PlaceSumAggregateInputType = {
-  rating?: true
   latitude?: true
   longitude?: true
+  rating?: true
+  ratingCount?: true
 }
 
 export type PlaceMinAggregateInputType = {
   id?: true
+  osmId?: true
+  source?: true
   name?: true
   category?: true
-  rating?: true
-  priceLevel?: true
-  distance?: true
-  image?: true
-  description?: true
   address?: true
   latitude?: true
   longitude?: true
+  description?: true
+  image?: true
+  imageSource?: true
+  imageAttribution?: true
+  imageLicense?: true
+  rating?: true
+  ratingCount?: true
+  ratingSource?: true
+  priceLevel?: true
+  distance?: true
+  website?: true
+  phone?: true
+  openingHours?: true
+  wikimediaCommons?: true
   createdAt?: true
   updatedAt?: true
 }
 
 export type PlaceMaxAggregateInputType = {
   id?: true
+  osmId?: true
+  source?: true
   name?: true
   category?: true
-  rating?: true
-  priceLevel?: true
-  distance?: true
-  image?: true
-  description?: true
   address?: true
   latitude?: true
   longitude?: true
+  description?: true
+  image?: true
+  imageSource?: true
+  imageAttribution?: true
+  imageLicense?: true
+  rating?: true
+  ratingCount?: true
+  ratingSource?: true
+  priceLevel?: true
+  distance?: true
+  website?: true
+  phone?: true
+  openingHours?: true
+  wikimediaCommons?: true
   createdAt?: true
   updatedAt?: true
 }
 
 export type PlaceCountAggregateInputType = {
   id?: true
+  osmId?: true
+  source?: true
   name?: true
   category?: true
   tags?: true
-  rating?: true
-  priceLevel?: true
-  distance?: true
-  image?: true
-  description?: true
   address?: true
   latitude?: true
   longitude?: true
+  description?: true
+  image?: true
+  imageSource?: true
+  imageAttribution?: true
+  imageLicense?: true
+  rating?: true
+  ratingCount?: true
+  ratingSource?: true
+  priceLevel?: true
+  distance?: true
+  website?: true
+  phone?: true
+  openingHours?: true
+  wikimediaCommons?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -239,17 +309,28 @@ export type PlaceGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 
 export type PlaceGroupByOutputType = {
   id: string
+  osmId: string | null
+  source: string
   name: string
   category: string
   tags: string[]
-  rating: number
-  priceLevel: string | null
-  distance: string | null
-  image: string | null
-  description: string | null
   address: string | null
   latitude: number | null
   longitude: number | null
+  description: string | null
+  image: string | null
+  imageSource: string | null
+  imageAttribution: string | null
+  imageLicense: string | null
+  rating: number | null
+  ratingCount: number | null
+  ratingSource: string | null
+  priceLevel: string | null
+  distance: string | null
+  website: string | null
+  phone: string | null
+  openingHours: string | null
+  wikimediaCommons: string | null
   createdAt: Date
   updatedAt: Date
   _count: PlaceCountAggregateOutputType | null
@@ -279,71 +360,115 @@ export type PlaceWhereInput = {
   OR?: Prisma.PlaceWhereInput[]
   NOT?: Prisma.PlaceWhereInput | Prisma.PlaceWhereInput[]
   id?: Prisma.StringFilter<"Place"> | string
+  osmId?: Prisma.StringNullableFilter<"Place"> | string | null
+  source?: Prisma.StringFilter<"Place"> | string
   name?: Prisma.StringFilter<"Place"> | string
   category?: Prisma.StringFilter<"Place"> | string
   tags?: Prisma.StringNullableListFilter<"Place">
-  rating?: Prisma.FloatFilter<"Place"> | number
-  priceLevel?: Prisma.StringNullableFilter<"Place"> | string | null
-  distance?: Prisma.StringNullableFilter<"Place"> | string | null
-  image?: Prisma.StringNullableFilter<"Place"> | string | null
-  description?: Prisma.StringNullableFilter<"Place"> | string | null
   address?: Prisma.StringNullableFilter<"Place"> | string | null
   latitude?: Prisma.FloatNullableFilter<"Place"> | number | null
   longitude?: Prisma.FloatNullableFilter<"Place"> | number | null
+  description?: Prisma.StringNullableFilter<"Place"> | string | null
+  image?: Prisma.StringNullableFilter<"Place"> | string | null
+  imageSource?: Prisma.StringNullableFilter<"Place"> | string | null
+  imageAttribution?: Prisma.StringNullableFilter<"Place"> | string | null
+  imageLicense?: Prisma.StringNullableFilter<"Place"> | string | null
+  rating?: Prisma.FloatNullableFilter<"Place"> | number | null
+  ratingCount?: Prisma.IntNullableFilter<"Place"> | number | null
+  ratingSource?: Prisma.StringNullableFilter<"Place"> | string | null
+  priceLevel?: Prisma.StringNullableFilter<"Place"> | string | null
+  distance?: Prisma.StringNullableFilter<"Place"> | string | null
+  website?: Prisma.StringNullableFilter<"Place"> | string | null
+  phone?: Prisma.StringNullableFilter<"Place"> | string | null
+  openingHours?: Prisma.StringNullableFilter<"Place"> | string | null
+  wikimediaCommons?: Prisma.StringNullableFilter<"Place"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Place"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Place"> | Date | string
 }
 
 export type PlaceOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  osmId?: Prisma.SortOrderInput | Prisma.SortOrder
+  source?: Prisma.SortOrder
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
   tags?: Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  priceLevel?: Prisma.SortOrderInput | Prisma.SortOrder
-  distance?: Prisma.SortOrderInput | Prisma.SortOrder
-  image?: Prisma.SortOrderInput | Prisma.SortOrder
-  description?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   latitude?: Prisma.SortOrderInput | Prisma.SortOrder
   longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  image?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageAttribution?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageLicense?: Prisma.SortOrderInput | Prisma.SortOrder
+  rating?: Prisma.SortOrderInput | Prisma.SortOrder
+  ratingCount?: Prisma.SortOrderInput | Prisma.SortOrder
+  ratingSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  priceLevel?: Prisma.SortOrderInput | Prisma.SortOrder
+  distance?: Prisma.SortOrderInput | Prisma.SortOrder
+  website?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  openingHours?: Prisma.SortOrderInput | Prisma.SortOrder
+  wikimediaCommons?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type PlaceWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  osmId?: string
   AND?: Prisma.PlaceWhereInput | Prisma.PlaceWhereInput[]
   OR?: Prisma.PlaceWhereInput[]
   NOT?: Prisma.PlaceWhereInput | Prisma.PlaceWhereInput[]
+  source?: Prisma.StringFilter<"Place"> | string
   name?: Prisma.StringFilter<"Place"> | string
   category?: Prisma.StringFilter<"Place"> | string
   tags?: Prisma.StringNullableListFilter<"Place">
-  rating?: Prisma.FloatFilter<"Place"> | number
-  priceLevel?: Prisma.StringNullableFilter<"Place"> | string | null
-  distance?: Prisma.StringNullableFilter<"Place"> | string | null
-  image?: Prisma.StringNullableFilter<"Place"> | string | null
-  description?: Prisma.StringNullableFilter<"Place"> | string | null
   address?: Prisma.StringNullableFilter<"Place"> | string | null
   latitude?: Prisma.FloatNullableFilter<"Place"> | number | null
   longitude?: Prisma.FloatNullableFilter<"Place"> | number | null
+  description?: Prisma.StringNullableFilter<"Place"> | string | null
+  image?: Prisma.StringNullableFilter<"Place"> | string | null
+  imageSource?: Prisma.StringNullableFilter<"Place"> | string | null
+  imageAttribution?: Prisma.StringNullableFilter<"Place"> | string | null
+  imageLicense?: Prisma.StringNullableFilter<"Place"> | string | null
+  rating?: Prisma.FloatNullableFilter<"Place"> | number | null
+  ratingCount?: Prisma.IntNullableFilter<"Place"> | number | null
+  ratingSource?: Prisma.StringNullableFilter<"Place"> | string | null
+  priceLevel?: Prisma.StringNullableFilter<"Place"> | string | null
+  distance?: Prisma.StringNullableFilter<"Place"> | string | null
+  website?: Prisma.StringNullableFilter<"Place"> | string | null
+  phone?: Prisma.StringNullableFilter<"Place"> | string | null
+  openingHours?: Prisma.StringNullableFilter<"Place"> | string | null
+  wikimediaCommons?: Prisma.StringNullableFilter<"Place"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Place"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Place"> | Date | string
-}, "id">
+}, "id" | "osmId">
 
 export type PlaceOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  osmId?: Prisma.SortOrderInput | Prisma.SortOrder
+  source?: Prisma.SortOrder
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
   tags?: Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  priceLevel?: Prisma.SortOrderInput | Prisma.SortOrder
-  distance?: Prisma.SortOrderInput | Prisma.SortOrder
-  image?: Prisma.SortOrderInput | Prisma.SortOrder
-  description?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   latitude?: Prisma.SortOrderInput | Prisma.SortOrder
   longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  image?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageAttribution?: Prisma.SortOrderInput | Prisma.SortOrder
+  imageLicense?: Prisma.SortOrderInput | Prisma.SortOrder
+  rating?: Prisma.SortOrderInput | Prisma.SortOrder
+  ratingCount?: Prisma.SortOrderInput | Prisma.SortOrder
+  ratingSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  priceLevel?: Prisma.SortOrderInput | Prisma.SortOrder
+  distance?: Prisma.SortOrderInput | Prisma.SortOrder
+  website?: Prisma.SortOrderInput | Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  openingHours?: Prisma.SortOrderInput | Prisma.SortOrder
+  wikimediaCommons?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PlaceCountOrderByAggregateInput
@@ -358,136 +483,224 @@ export type PlaceScalarWhereWithAggregatesInput = {
   OR?: Prisma.PlaceScalarWhereWithAggregatesInput[]
   NOT?: Prisma.PlaceScalarWhereWithAggregatesInput | Prisma.PlaceScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Place"> | string
+  osmId?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  source?: Prisma.StringWithAggregatesFilter<"Place"> | string
   name?: Prisma.StringWithAggregatesFilter<"Place"> | string
   category?: Prisma.StringWithAggregatesFilter<"Place"> | string
   tags?: Prisma.StringNullableListFilter<"Place">
-  rating?: Prisma.FloatWithAggregatesFilter<"Place"> | number
-  priceLevel?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
-  distance?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
-  image?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
-  description?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
   address?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
   latitude?: Prisma.FloatNullableWithAggregatesFilter<"Place"> | number | null
   longitude?: Prisma.FloatNullableWithAggregatesFilter<"Place"> | number | null
+  description?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  image?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  imageSource?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  imageAttribution?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  imageLicense?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  rating?: Prisma.FloatNullableWithAggregatesFilter<"Place"> | number | null
+  ratingCount?: Prisma.IntNullableWithAggregatesFilter<"Place"> | number | null
+  ratingSource?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  priceLevel?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  distance?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  website?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  phone?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  openingHours?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  wikimediaCommons?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Place"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Place"> | Date | string
 }
 
 export type PlaceCreateInput = {
   id?: string
+  osmId?: string | null
+  source?: string
   name: string
   category: string
   tags?: Prisma.PlaceCreatetagsInput | string[]
-  rating?: number
-  priceLevel?: string | null
-  distance?: string | null
-  image?: string | null
-  description?: string | null
   address?: string | null
   latitude?: number | null
   longitude?: number | null
+  description?: string | null
+  image?: string | null
+  imageSource?: string | null
+  imageAttribution?: string | null
+  imageLicense?: string | null
+  rating?: number | null
+  ratingCount?: number | null
+  ratingSource?: string | null
+  priceLevel?: string | null
+  distance?: string | null
+  website?: string | null
+  phone?: string | null
+  openingHours?: string | null
+  wikimediaCommons?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type PlaceUncheckedCreateInput = {
   id?: string
+  osmId?: string | null
+  source?: string
   name: string
   category: string
   tags?: Prisma.PlaceCreatetagsInput | string[]
-  rating?: number
-  priceLevel?: string | null
-  distance?: string | null
-  image?: string | null
-  description?: string | null
   address?: string | null
   latitude?: number | null
   longitude?: number | null
+  description?: string | null
+  image?: string | null
+  imageSource?: string | null
+  imageAttribution?: string | null
+  imageLicense?: string | null
+  rating?: number | null
+  ratingCount?: number | null
+  ratingSource?: string | null
+  priceLevel?: string | null
+  distance?: string | null
+  website?: string | null
+  phone?: string | null
+  openingHours?: string | null
+  wikimediaCommons?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type PlaceUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  osmId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   tags?: Prisma.PlaceUpdatetagsInput | string[]
-  rating?: Prisma.FloatFieldUpdateOperationsInput | number
-  priceLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  distance?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageAttribution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageLicense?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openingHours?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  wikimediaCommons?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PlaceUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  osmId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   tags?: Prisma.PlaceUpdatetagsInput | string[]
-  rating?: Prisma.FloatFieldUpdateOperationsInput | number
-  priceLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  distance?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageAttribution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageLicense?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openingHours?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  wikimediaCommons?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PlaceCreateManyInput = {
   id?: string
+  osmId?: string | null
+  source?: string
   name: string
   category: string
   tags?: Prisma.PlaceCreatetagsInput | string[]
-  rating?: number
-  priceLevel?: string | null
-  distance?: string | null
-  image?: string | null
-  description?: string | null
   address?: string | null
   latitude?: number | null
   longitude?: number | null
+  description?: string | null
+  image?: string | null
+  imageSource?: string | null
+  imageAttribution?: string | null
+  imageLicense?: string | null
+  rating?: number | null
+  ratingCount?: number | null
+  ratingSource?: string | null
+  priceLevel?: string | null
+  distance?: string | null
+  website?: string | null
+  phone?: string | null
+  openingHours?: string | null
+  wikimediaCommons?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type PlaceUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  osmId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   tags?: Prisma.PlaceUpdatetagsInput | string[]
-  rating?: Prisma.FloatFieldUpdateOperationsInput | number
-  priceLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  distance?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageAttribution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageLicense?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openingHours?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  wikimediaCommons?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PlaceUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  osmId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.StringFieldUpdateOperationsInput | string
   tags?: Prisma.PlaceUpdatetagsInput | string[]
-  rating?: Prisma.FloatFieldUpdateOperationsInput | number
-  priceLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  distance?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageAttribution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageLicense?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  ratingCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ratingSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priceLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  openingHours?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  wikimediaCommons?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -502,63 +715,98 @@ export type StringNullableListFilter<$PrismaModel = never> = {
 
 export type PlaceCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  osmId?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
   tags?: Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  priceLevel?: Prisma.SortOrder
-  distance?: Prisma.SortOrder
-  image?: Prisma.SortOrder
-  description?: Prisma.SortOrder
   address?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  image?: Prisma.SortOrder
+  imageSource?: Prisma.SortOrder
+  imageAttribution?: Prisma.SortOrder
+  imageLicense?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
+  ratingCount?: Prisma.SortOrder
+  ratingSource?: Prisma.SortOrder
+  priceLevel?: Prisma.SortOrder
+  distance?: Prisma.SortOrder
+  website?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  openingHours?: Prisma.SortOrder
+  wikimediaCommons?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type PlaceAvgOrderByAggregateInput = {
-  rating?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
+  ratingCount?: Prisma.SortOrder
 }
 
 export type PlaceMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  osmId?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  priceLevel?: Prisma.SortOrder
-  distance?: Prisma.SortOrder
-  image?: Prisma.SortOrder
-  description?: Prisma.SortOrder
   address?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  image?: Prisma.SortOrder
+  imageSource?: Prisma.SortOrder
+  imageAttribution?: Prisma.SortOrder
+  imageLicense?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
+  ratingCount?: Prisma.SortOrder
+  ratingSource?: Prisma.SortOrder
+  priceLevel?: Prisma.SortOrder
+  distance?: Prisma.SortOrder
+  website?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  openingHours?: Prisma.SortOrder
+  wikimediaCommons?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type PlaceMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  osmId?: Prisma.SortOrder
+  source?: Prisma.SortOrder
   name?: Prisma.SortOrder
   category?: Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  priceLevel?: Prisma.SortOrder
-  distance?: Prisma.SortOrder
-  image?: Prisma.SortOrder
-  description?: Prisma.SortOrder
   address?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  image?: Prisma.SortOrder
+  imageSource?: Prisma.SortOrder
+  imageAttribution?: Prisma.SortOrder
+  imageLicense?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
+  ratingCount?: Prisma.SortOrder
+  ratingSource?: Prisma.SortOrder
+  priceLevel?: Prisma.SortOrder
+  distance?: Prisma.SortOrder
+  website?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
+  openingHours?: Prisma.SortOrder
+  wikimediaCommons?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type PlaceSumOrderByAggregateInput = {
-  rating?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
+  rating?: Prisma.SortOrder
+  ratingCount?: Prisma.SortOrder
 }
 
 export type PlaceCreatetagsInput = {
@@ -569,24 +817,24 @@ export type StringFieldUpdateOperationsInput = {
   set?: string
 }
 
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
 export type PlaceUpdatetagsInput = {
   set?: string[]
   push?: string | string[]
 }
 
-export type FloatFieldUpdateOperationsInput = {
-  set?: number
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
   increment?: number
   decrement?: number
   multiply?: number
   divide?: number
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
-export type NullableFloatFieldUpdateOperationsInput = {
+export type NullableIntFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
   decrement?: number
@@ -602,90 +850,145 @@ export type DateTimeFieldUpdateOperationsInput = {
 
 export type PlaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  osmId?: boolean
+  source?: boolean
   name?: boolean
   category?: boolean
   tags?: boolean
-  rating?: boolean
-  priceLevel?: boolean
-  distance?: boolean
-  image?: boolean
-  description?: boolean
   address?: boolean
   latitude?: boolean
   longitude?: boolean
+  description?: boolean
+  image?: boolean
+  imageSource?: boolean
+  imageAttribution?: boolean
+  imageLicense?: boolean
+  rating?: boolean
+  ratingCount?: boolean
+  ratingSource?: boolean
+  priceLevel?: boolean
+  distance?: boolean
+  website?: boolean
+  phone?: boolean
+  openingHours?: boolean
+  wikimediaCommons?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["place"]>
 
 export type PlaceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  osmId?: boolean
+  source?: boolean
   name?: boolean
   category?: boolean
   tags?: boolean
-  rating?: boolean
-  priceLevel?: boolean
-  distance?: boolean
-  image?: boolean
-  description?: boolean
   address?: boolean
   latitude?: boolean
   longitude?: boolean
+  description?: boolean
+  image?: boolean
+  imageSource?: boolean
+  imageAttribution?: boolean
+  imageLicense?: boolean
+  rating?: boolean
+  ratingCount?: boolean
+  ratingSource?: boolean
+  priceLevel?: boolean
+  distance?: boolean
+  website?: boolean
+  phone?: boolean
+  openingHours?: boolean
+  wikimediaCommons?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["place"]>
 
 export type PlaceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  osmId?: boolean
+  source?: boolean
   name?: boolean
   category?: boolean
   tags?: boolean
-  rating?: boolean
-  priceLevel?: boolean
-  distance?: boolean
-  image?: boolean
-  description?: boolean
   address?: boolean
   latitude?: boolean
   longitude?: boolean
+  description?: boolean
+  image?: boolean
+  imageSource?: boolean
+  imageAttribution?: boolean
+  imageLicense?: boolean
+  rating?: boolean
+  ratingCount?: boolean
+  ratingSource?: boolean
+  priceLevel?: boolean
+  distance?: boolean
+  website?: boolean
+  phone?: boolean
+  openingHours?: boolean
+  wikimediaCommons?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["place"]>
 
 export type PlaceSelectScalar = {
   id?: boolean
+  osmId?: boolean
+  source?: boolean
   name?: boolean
   category?: boolean
   tags?: boolean
-  rating?: boolean
-  priceLevel?: boolean
-  distance?: boolean
-  image?: boolean
-  description?: boolean
   address?: boolean
   latitude?: boolean
   longitude?: boolean
+  description?: boolean
+  image?: boolean
+  imageSource?: boolean
+  imageAttribution?: boolean
+  imageLicense?: boolean
+  rating?: boolean
+  ratingCount?: boolean
+  ratingSource?: boolean
+  priceLevel?: boolean
+  distance?: boolean
+  website?: boolean
+  phone?: boolean
+  openingHours?: boolean
+  wikimediaCommons?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PlaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "category" | "tags" | "rating" | "priceLevel" | "distance" | "image" | "description" | "address" | "latitude" | "longitude" | "createdAt" | "updatedAt", ExtArgs["result"]["place"]>
+export type PlaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "osmId" | "source" | "name" | "category" | "tags" | "address" | "latitude" | "longitude" | "description" | "image" | "imageSource" | "imageAttribution" | "imageLicense" | "rating" | "ratingCount" | "ratingSource" | "priceLevel" | "distance" | "website" | "phone" | "openingHours" | "wikimediaCommons" | "createdAt" | "updatedAt", ExtArgs["result"]["place"]>
 
 export type $PlacePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Place"
   objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    osmId: string | null
+    source: string
     name: string
     category: string
     tags: string[]
-    rating: number
-    priceLevel: string | null
-    distance: string | null
-    image: string | null
-    description: string | null
     address: string | null
     latitude: number | null
     longitude: number | null
+    description: string | null
+    image: string | null
+    imageSource: string | null
+    imageAttribution: string | null
+    imageLicense: string | null
+    rating: number | null
+    ratingCount: number | null
+    ratingSource: string | null
+    priceLevel: string | null
+    distance: string | null
+    website: string | null
+    phone: string | null
+    openingHours: string | null
+    wikimediaCommons: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["place"]>
@@ -1112,17 +1415,28 @@ export interface Prisma__PlaceClient<T, Null = never, ExtArgs extends runtime.Ty
  */
 export interface PlaceFieldRefs {
   readonly id: Prisma.FieldRef<"Place", 'String'>
+  readonly osmId: Prisma.FieldRef<"Place", 'String'>
+  readonly source: Prisma.FieldRef<"Place", 'String'>
   readonly name: Prisma.FieldRef<"Place", 'String'>
   readonly category: Prisma.FieldRef<"Place", 'String'>
   readonly tags: Prisma.FieldRef<"Place", 'String[]'>
-  readonly rating: Prisma.FieldRef<"Place", 'Float'>
-  readonly priceLevel: Prisma.FieldRef<"Place", 'String'>
-  readonly distance: Prisma.FieldRef<"Place", 'String'>
-  readonly image: Prisma.FieldRef<"Place", 'String'>
-  readonly description: Prisma.FieldRef<"Place", 'String'>
   readonly address: Prisma.FieldRef<"Place", 'String'>
   readonly latitude: Prisma.FieldRef<"Place", 'Float'>
   readonly longitude: Prisma.FieldRef<"Place", 'Float'>
+  readonly description: Prisma.FieldRef<"Place", 'String'>
+  readonly image: Prisma.FieldRef<"Place", 'String'>
+  readonly imageSource: Prisma.FieldRef<"Place", 'String'>
+  readonly imageAttribution: Prisma.FieldRef<"Place", 'String'>
+  readonly imageLicense: Prisma.FieldRef<"Place", 'String'>
+  readonly rating: Prisma.FieldRef<"Place", 'Float'>
+  readonly ratingCount: Prisma.FieldRef<"Place", 'Int'>
+  readonly ratingSource: Prisma.FieldRef<"Place", 'String'>
+  readonly priceLevel: Prisma.FieldRef<"Place", 'String'>
+  readonly distance: Prisma.FieldRef<"Place", 'String'>
+  readonly website: Prisma.FieldRef<"Place", 'String'>
+  readonly phone: Prisma.FieldRef<"Place", 'String'>
+  readonly openingHours: Prisma.FieldRef<"Place", 'String'>
+  readonly wikimediaCommons: Prisma.FieldRef<"Place", 'String'>
   readonly createdAt: Prisma.FieldRef<"Place", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Place", 'DateTime'>
 }
