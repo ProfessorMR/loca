@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { ExploreResults } from "@/components/shared/explore-results";
 import { SearchBar } from "@/components/shared/search-bar";
-import { searchPlaces } from "@/lib/places";
+import { getPlaceCategories, searchPlaces } from "@/lib/places";
 import { SearchSuggestions } from "@/components/shared/search-suggestions";
 
 type ExploreContentProps = {
@@ -17,10 +17,12 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
   await connection();
 
   const params = await searchParams;
-  const query = params.q ?? "";
+  const query = params.q?.trim() ?? "";
 
   const { places: results, intent } = await searchPlaces(query);
   const resultsCount = results.length;
+
+  const categories = await getPlaceCategories();
 
   return (
     <main className="min-h-screen">
@@ -54,7 +56,11 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
           {!query && <SearchSuggestions />}
         </div>
 
-        <ExploreResults places={results} intent={intent} />
+        <ExploreResults
+          places={results}
+          intent={intent}
+          categories={categories}
+        />
       </div>
     </main>
   );

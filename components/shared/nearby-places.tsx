@@ -1,8 +1,9 @@
 import { PlaceCard } from "@/components/shared/place-card";
-import { places } from "@/lib/places";
+import { getPlaces } from "@/lib/places";
 
+export async function NearbyPlaces() {
+  const places = await getPlaces();
 
-export function NearbyPlaces() {
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
       <div className="mb-8 flex items-end justify-between">
@@ -22,11 +23,20 @@ export function NearbyPlaces() {
         </button>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {places.map((place) => (
-          <PlaceCard key={place.id} place={place} />
-        ))}
-      </div>
+      {places.length > 0 ? (
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {places.slice(0, 6).map((place) => (
+            <PlaceCard key={place.id} place={place} />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-3xl border border-dashed p-10 text-center">
+          <h3 className="font-semibold">No places available yet</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Places will appear here once they are added to the database.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

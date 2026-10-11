@@ -3,9 +3,12 @@ import { ArrowLeft, FolderHeart } from "lucide-react";
 
 import { Navbar } from "@/components/shared/navbar";
 import { collections } from "@/lib/collections";
-import { places } from "@/lib/places";
+import { getPlaces } from "@/lib/places";
 
-export default function CollectionsPage() {
+export const instant = false;
+
+export default async function CollectionsPage() {
+  const places = await getPlaces();
   return (
     <main className="min-h-screen">
       <Navbar />
@@ -48,11 +51,17 @@ export default function CollectionsPage() {
                 <div className="grid aspect-[16/9] grid-cols-2 gap-1 bg-muted">
                   {collectionPlaces.slice(0, 2).map((place) => (
                     <div key={place.id} className="overflow-hidden bg-muted">
-                      <img
-                        src={place.image}
-                        alt={place.name}
-                        className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
+                      {place.image ? (
+                        <img
+                          src={place.image}
+                          alt={place.name}
+                          className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex size-full items-center justify-center text-xs text-muted-foreground">
+                          No image
+                        </div>
+                      )}
                     </div>
                   ))}
 
@@ -77,8 +86,8 @@ export default function CollectionsPage() {
                   </p>
 
                   <p className="mt-4 text-xs font-medium text-muted-foreground">
-                    {collection.placeIds.length}{" "}
-                    {collection.placeIds.length === 1 ? "place" : "places"}
+                    {collectionPlaces.length}{" "}
+                    {collectionPlaces.length === 1 ? "place" : "places"}
                   </p>
                 </div>
               </Link>

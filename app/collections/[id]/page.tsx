@@ -5,13 +5,15 @@ import { notFound } from "next/navigation";
 import { Navbar } from "@/components/shared/navbar";
 import { PlaceCard } from "@/components/shared/place-card";
 import { collections } from "@/lib/collections";
-import { places } from "@/lib/places";
+import { getPlaces } from "@/lib/places";
 
 type CollectionPageProps = {
   params: Promise<{
     id: string;
   }>;
 };
+
+export const instant = false;
 
 export default async function CollectionPage({ params }: CollectionPageProps) {
   const { id } = await params;
@@ -21,6 +23,8 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
   if (!collection) {
     notFound();
   }
+
+  const places = await getPlaces();
 
   const collectionPlaces = places.filter((place) =>
     collection.placeIds.includes(place.id),

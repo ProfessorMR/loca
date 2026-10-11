@@ -1,15 +1,56 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Bookmark } from "lucide-react";
 
 import { Navbar } from "@/components/shared/navbar";
 import { PlaceCard } from "@/components/shared/place-card";
 import { useFavorites } from "@/components/shared/favorites-provider";
-import { places } from "@/lib/places";
+import type { Place } from "@/types/place";
 
 export default function SavedPage() {
   const { favoritePlaceIds } = useFavorites();
+
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function fetchPlaces() {
+      try {
+        const response = await fetch("/api/places");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch places");
+        }
+
+        const data: { places: Place[] } = await response.json();
+
+        if (isActive) {
+          setPlaces(data.places);
+        }
+      } catch (error) {
+        console.error("Failed to load saved places:", error);
+
+        if (isActive) {
+          setHasError(true);
+        }
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchPlaces();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   const savedPlaces = places.filter((place) =>
     favoritePlaceIds.includes(place.id),
@@ -40,7 +81,33 @@ export default function SavedPage() {
           </p>
         </div>
 
-        {savedPlaces.length > 0 ? (
+        {isLoading ? (
+          <div
+            className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+            aria-label="Loading saved places"
+          >
+            {[1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="h-72 animate-pulse rounded-3xl bg-muted"
+              />
+            ))}
+          </div>
+        ) : hasError ? (
+          <div className="mt-10 rounded-3xl border border-dashed p-12 text-center">
+            <h2 className="font-semibold">Couldn't load saved places</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Please try again in a moment.
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-5 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background"
+            >
+              Try again
+            </button>
+          </div>
+        ) : savedPlaces.length > 0 ? (
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {savedPlaces.map((place) => (
               <PlaceCard key={place.id} place={place} />

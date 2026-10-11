@@ -2,20 +2,25 @@
 
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { List, Map as MapIcon } from "lucide-react";
 
 import { ExploreFilters } from "@/components/shared/explore-filters";
 import { Map } from "@/components/shared/map";
 import { PlaceCard } from "@/components/shared/place-card";
 import type { Place } from "@/types/place";
 import type { SearchIntent } from "@/types/search";
-import { List, Map as MapIcon } from "lucide-react";
 
 type ExploreResultsProps = {
   places: Place[];
   intent: SearchIntent | null;
+  categories: string[];
 };
 
-export function ExploreResults({ places, intent }: ExploreResultsProps) {
+export function ExploreResults({
+  places,
+  intent,
+  categories,
+}: ExploreResultsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -40,43 +45,17 @@ export function ExploreResults({ places, intent }: ExploreResultsProps) {
     });
   }, [places, selectedCategory, selectedPrice]);
 
-  function handleCategoryChange(category: string) {
+  function updateSearchParams(
+    key: string,
+    value: string,
+    defaultValue: string,
+  ) {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (category === "All") {
-      params.delete("category");
+    if (value === defaultValue) {
+      params.delete(key);
     } else {
-      params.set("category", category);
-    }
-
-    setSelectedPlaceId(null);
-
-    const queryString = params.toString();
-    router.push(queryString ? `${pathname}?${queryString}` : pathname);
-  }
-
-  function handlePriceChange(price: string) {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (price === "all") {
-      params.delete("price");
-    } else {
-      params.set("price", price);
-    }
-
-    setSelectedPlaceId(null);
-
-    const queryString = params.toString();
-    router.push(queryString ? `${pathname}?${queryString}` : pathname);
-  }
-
-  function handleSortChange(sort: string) {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (sort === "recommended") {
-      params.delete("sort");
-    } else {
-      params.set("sort", sort);
+      params.set(key, value);
     }
 
     setSelectedPlaceId(null);
@@ -90,13 +69,22 @@ export function ExploreResults({ places, intent }: ExploreResultsProps) {
 
     switch (selectedSort) {
       case "rating":
-        return sortedPlaces.sort((a, b) => b.rating - a.rating);
-
-      case "distance":
         return sortedPlaces.sort(
-          (a, b) =>
-            Number.parseFloat(a.distance) - Number.parseFloat(b.distance),
+          (a, b) => (b.rating ?? -Infinity) - (a.rating ?? -Infinity),
         );
+
+      case "distance": {
+        const parseDistance = (distance: string | null) => {
+          if (!distance) return Infinity;
+
+          const value = Number.parseFloat(distance);
+          return Number.isFinite(value) ? value : Infinity;
+        };
+
+        return sortedPlaces.sort(
+          (a, b) => parseDistance(a.distance) - parseDistance(b.distance),
+        );
+      }
 
       default:
         return sortedPlaces;
@@ -106,12 +94,15 @@ export function ExploreResults({ places, intent }: ExploreResultsProps) {
   return (
     <div className="mt-12">
       <ExploreFilters
+        categories={categories}
         selectedCategory={selectedCategory}
         selectedSort={selectedSort}
         selectedPrice={selectedPrice}
-        onCategoryChange={handleCategoryChange}
-        onSortChange={handleSortChange}
-        onPriceChange={handlePriceChange}
+        onCategoryChange={(category) =>
+          updateSearchParams("category", category, "All")
+        }
+        onSortChange={(sort) => updateSearchParams("sort", sort, "recommended")}
+        onPriceChange={(price) => updateSearchParams("price", price, "all")}
       />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
@@ -194,12 +185,15 @@ export function ExploreResults({ places, intent }: ExploreResultsProps) {
                       const params = new URLSearchParams(
                         searchParams.toString(),
                       );
-
                       params.delete("q");
                       params.delete("price");
                       params.set("category", suggestion);
 
-                      router.push(`${pathname}?${params.toString()}`);
+                      const queryString = params.toString();
+                      router.push(
+                        queryString ? `${pathname}?${queryString}` : pathname,
+                      );
+                      setSelectedPlaceId(null);
                     }}
                     className="rounded-full border bg-background px-4 py-2 text-sm font-medium transition-colors hover:border-foreground/30 hover:bg-muted"
                   >
@@ -210,7 +204,10 @@ export function ExploreResults({ places, intent }: ExploreResultsProps) {
 
               <button
                 type="button"
-                onClick={() => router.push(pathname)}
+                onClick={() => {
+                  setSelectedPlaceId(null);
+                  router.push(pathname);
+                }}
                 className="mt-4 text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700 hover:underline"
               >
                 Clear search and filters

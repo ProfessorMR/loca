@@ -1,0 +1,29 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Place {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  tags        String[] @default([])
+  rating      Float    @default(0)
+  priceLevel  String?
+  distance    String?
+  image       String?
+  description String?
+  address     String?
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([rating])
+}

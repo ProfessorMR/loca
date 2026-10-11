@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { getPlaceCategories } from "@/lib/places";
 
 const priceOptions = [
   { label: "Any price", value: "all" },
@@ -23,9 +22,11 @@ type ExploreFiltersProps = {
   onCategoryChange: (category: string) => void;
   onSortChange: (sort: string) => void;
   onPriceChange: (price: string) => void;
+  categories: string[];
 };
 
 export function ExploreFilters({
+  categories,
   selectedCategory,
   selectedSort,
   selectedPrice,
@@ -33,12 +34,12 @@ export function ExploreFilters({
   onSortChange,
   onPriceChange,
 }: ExploreFiltersProps) {
-  const categories = ["All", ...getPlaceCategories()];
+  const categoryOptions = ["All", ...categories];
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <div className="flex min-w-0 gap-2 overflow-x-auto pb-1">
-        {categories.map((category) => {
+        {categoryOptions.map((category) => {
           const isSelected = selectedCategory === category;
 
           return (

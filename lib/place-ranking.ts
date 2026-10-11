@@ -38,8 +38,8 @@ export function rankPlaces(places: Place[], intent: SearchIntent): Place[] {
       const text = [
         place.name,
         place.category,
-        place.description,
-        place.address,
+        place.description ?? "",
+        place.address ?? "",
         ...place.tags,
       ]
         .join(" ")
@@ -65,13 +65,16 @@ export function rankPlaces(places: Place[], intent: SearchIntent): Place[] {
 
   return rankedPlaces
     .sort((a, b) => {
-      if (intent.sort === "rating" && b.place.rating !== a.place.rating) {
-        return b.place.rating - a.place.rating;
+      const ratingA = a.place.rating ?? -1;
+      const ratingB = b.place.rating ?? -1;
+
+      if (intent.sort === "rating" && ratingB !== ratingA) {
+        return ratingB - ratingA;
       }
 
       if (intent.sort === "distance") {
-        const distanceA = Number.parseFloat(a.place.distance);
-        const distanceB = Number.parseFloat(b.place.distance);
+        const distanceA = Number.parseFloat(a.place.distance ?? "");
+        const distanceB = Number.parseFloat(b.place.distance ?? "");
 
         if (
           Number.isFinite(distanceA) &&
@@ -79,6 +82,10 @@ export function rankPlaces(places: Place[], intent: SearchIntent): Place[] {
           distanceA !== distanceB
         ) {
           return distanceA - distanceB;
+        }
+
+        if (Number.isFinite(distanceA) !== Number.isFinite(distanceB)) {
+          return Number.isFinite(distanceA) ? -1 : 1;
         }
       }
 
@@ -90,7 +97,7 @@ export function rankPlaces(places: Place[], intent: SearchIntent): Place[] {
         return b.score - a.score;
       }
 
-      return b.place.rating - a.place.rating;
+      return ratingB - ratingA;
     })
     .map(({ place }) => place);
 }

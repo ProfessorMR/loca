@@ -46,7 +46,6 @@ export function PlaceCard({
   const reasonTags = place.tags
     .filter((tag) => {
       if (!tagLabels[tag]) return false;
-
       if (!hasSearch) return true;
 
       return intent?.tags.includes(tag) ?? false;
@@ -69,14 +68,20 @@ export function PlaceCard({
     >
       <article>
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-          <Image
-            src={place.image}
-            alt={place.name}
-            fill
-            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-            loading={isPriority ? "eager" : "lazy"}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          {place.image ? (
+            <Image
+              src={place.image}
+              alt={place.name}
+              fill
+              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+              loading={isPriority ? "eager" : "lazy"}
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex size-full items-center justify-center text-sm text-muted-foreground">
+              No image available
+            </div>
+          )}
 
           <button
             type="button"
@@ -109,20 +114,28 @@ export function PlaceCard({
               </h3>
             </div>
 
-            <div className="flex shrink-0 items-center gap-1 text-sm font-medium">
-              <Star className="size-4 fill-current" />
-              {place.rating.toFixed(1)}
-            </div>
+            {place.rating !== null && (
+              <div className="flex shrink-0 items-center gap-1 text-sm font-medium">
+                <Star className="size-4 fill-current" />
+                {place.rating.toFixed(1)}
+              </div>
+            )}
           </div>
 
-          <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
-            <span>{place.priceLevel}</span>
-            <span>·</span>
-            <span className="flex items-center gap-1">
-              <MapPin className="size-3.5" />
-              {place.distance}
-            </span>
-          </div>
+          {(place.priceLevel || place.distance) && (
+            <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
+              {place.priceLevel && <span>{place.priceLevel}</span>}
+
+              {place.priceLevel && place.distance && <span>·</span>}
+
+              {place.distance && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="size-3.5" />
+                  {place.distance}
+                </span>
+              )}
+            </div>
+          )}
 
           {(reasonTags.length > 0 || matchesPrice) && (
             <div className="mt-4 border-t pt-3">

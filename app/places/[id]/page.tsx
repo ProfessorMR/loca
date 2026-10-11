@@ -16,7 +16,7 @@ type PlacePageProps = {
 
 export default async function PlacePage({ params }: PlacePageProps) {
   const { id } = await params;
-  const place = getPlaceById(id);
+  const place = await getPlaceById(id);
 
   if (!place) {
     return (
@@ -42,6 +42,10 @@ export default async function PlacePage({ params }: PlacePageProps) {
     );
   }
 
+  const metaItems = [place.priceLevel, place.distance, place.address].filter(
+    (item): item is string => Boolean(item),
+  );
+
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-5xl px-6 py-10">
@@ -55,15 +59,23 @@ export default async function PlacePage({ params }: PlacePageProps) {
 
         <article className="overflow-hidden rounded-3xl border bg-background shadow-sm">
           <div className="relative aspect-[16/7] overflow-hidden bg-muted">
-            <Image
-              src={place.image}
-              alt={place.name}
-              fill
-              sizes="(min-width: 1024px) 1152px, 100vw"
-              className="object-cover transition-transform duration-700 hover:scale-[1.02]"
-            />
+            {place.image ? (
+              <Image
+                src={place.image}
+                alt={place.name}
+                fill
+                sizes="(min-width: 1024px) 1152px, 100vw"
+                className="object-cover transition-transform duration-700 hover:scale-[1.02]"
+              />
+            ) : (
+              <div className="flex size-full items-center justify-center text-sm text-muted-foreground">
+                No image available
+              </div>
+            )}
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
+            {place.image && (
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
+            )}
 
             <div className="absolute bottom-5 left-5">
               <span className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm">
@@ -84,28 +96,23 @@ export default async function PlacePage({ params }: PlacePageProps) {
                 </h1>
 
                 <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Star className="size-4 fill-current text-foreground" />
-                    {place.rating.toFixed(1)}
-                  </span>
+                  {place.rating !== null && (
+                    <span className="flex items-center gap-1">
+                      <Star className="size-4 fill-current text-foreground" />
+                      {place.rating.toFixed(1)}
+                    </span>
+                  )}
 
-                  <span>·</span>
-
-                  <span>{place.priceLevel}</span>
-
-                  <span>·</span>
-
-                  <span className="flex items-center gap-1">
-                    <MapPin className="size-4" />
-                    {place.distance}
-                  </span>
-
-                  <span>·</span>
-
-                  <span className="flex items-center gap-1">
-                    <Navigation className="size-4" />
-                    {place.address}
-                  </span>
+                  {metaItems.map((item, index) => (
+                    <span
+                      key={`${item}-${index}`}
+                      className="flex items-center gap-1"
+                    >
+                      {index > 0 && <span className="mr-3">·</span>}
+                      {item === place.address && <MapPin className="size-4" />}
+                      {item}
+                    </span>
+                  ))}
                 </div>
               </div>
 
@@ -117,7 +124,7 @@ export default async function PlacePage({ params }: PlacePageProps) {
                 <h2 className="font-semibold">About this place</h2>
 
                 <p className="mt-3 leading-7 text-muted-foreground">
-                  {place.description}
+                  {place.description || "No description available yet."}
                 </p>
               </div>
 
@@ -127,7 +134,7 @@ export default async function PlacePage({ params }: PlacePageProps) {
                     <h2 className="font-semibold">Location</h2>
 
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      {place.address}
+                      {place.address || "Address unavailable"}
                     </p>
                   </div>
 

@@ -1,15 +1,60 @@
 import type { Place } from "@/types/place";
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export function createPlacePopupContent(place: Place) {
+  const name = escapeHtml(place.name);
+  const category = escapeHtml(place.category);
+
+  const imageContent = place.image
+    ? `
+      <img
+        src="${escapeHtml(place.image)}"
+        alt="${name}"
+      />
+    `
+    : `
+      <div class="loca-popup__image-placeholder">
+        No image available
+      </div>
+    `;
+
+  const metaItems = [
+    place.priceLevel ? escapeHtml(place.priceLevel) : null,
+    place.distance ? escapeHtml(place.distance) : null,
+  ].filter(Boolean);
+
+  const ratingContent =
+    place.rating !== null
+      ? `
+        <div class="loca-popup__rating">
+          <span>★</span>
+          ${place.rating.toFixed(1)}
+        </div>
+      `
+      : "";
+
+  const descriptionContent = place.description
+    ? `
+      <p class="loca-popup__description">
+        ${escapeHtml(place.description)}
+      </p>
+    `
+    : "";
+
   return `
     <div class="loca-popup">
       <div class="loca-popup__image">
-        <img
-          src="${place.image}"
-          alt="${place.name}"
-        />
+        ${imageContent}
         <span class="loca-popup__category">
-          ${place.category}
+          ${category}
         </span>
       </div>
 
@@ -17,26 +62,21 @@ export function createPlacePopupContent(place: Place) {
         <div class="loca-popup__header">
           <div>
             <h3 class="loca-popup__title">
-              ${place.name}
+              ${name}
             </h3>
 
             <p class="loca-popup__meta">
-              ${place.category} · ${place.priceLevel} · ${place.distance}
+              ${[category, ...metaItems].join(" · ")}
             </p>
           </div>
 
-          <div class="loca-popup__rating">
-            <span>★</span>
-            ${place.rating.toFixed(1)}
-          </div>
+          ${ratingContent}
         </div>
 
-        <p class="loca-popup__description">
-          ${place.description}
-        </p>
+        ${descriptionContent}
 
         <a
-          href="/places/${place.id}"
+          href="/places/${encodeURIComponent(place.id)}"
           class="loca-popup__button"
         >
           View place

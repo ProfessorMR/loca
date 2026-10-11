@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { FavoritesProvider } from "@/components/shared/favorites-provider";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <FavoritesProvider>{children}</FavoritesProvider>
+        <FavoritesProvider>
+          <Suspense
+            fallback={
+              <main className="min-h-screen animate-pulse bg-background" />
+            }
+          >
+            {children}
+          </Suspense>
+        </FavoritesProvider>
       </body>
     </html>
   );
