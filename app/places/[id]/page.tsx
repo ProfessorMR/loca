@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 
 import { ArrowLeft, MapPin, Navigation, Star } from "lucide-react";
 import { Navbar } from "@/components/shared/navbar";
+import { PlaceImage } from "@/components/shared/place-image";
 import { PlaceLocationMap } from "@/components/shared/place-location-map";
 import { SavePlaceButton } from "@/components/shared/save-place-button";
 import { getPlaceById } from "@/lib/places";
@@ -59,19 +59,14 @@ export default async function PlacePage({ params }: PlacePageProps) {
 
         <article className="overflow-hidden rounded-3xl border bg-background shadow-sm">
           <div className="relative aspect-[16/7] overflow-hidden bg-muted">
-            {place.image ? (
-              <Image
-                src={place.image}
-                alt={place.name}
-                fill
-                sizes="(min-width: 1024px) 1152px, 100vw"
-                className="object-cover transition-transform duration-700 hover:scale-[1.02]"
-              />
-            ) : (
-              <div className="flex size-full items-center justify-center text-sm text-muted-foreground">
-                No image available
-              </div>
-            )}
+            <PlaceImage
+              image={place.image}
+              name={place.name}
+              category={place.category}
+              sizes="(min-width: 1024px) 1152px, 100vw"
+              priority
+              className="object-cover transition-transform duration-700 hover:scale-[1.02]"
+            />
 
             {place.image && (
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />

@@ -1,0 +1,5 @@
+npm notice run loca@0.1.0 npx
+npm notice run tsx scripts/enrich-images.ts --concurrency 1 --delay 1000
+[w1] ! EastSide Story: fetch failed
+[w1] ! nuar: fetch failed
+[w1] ! Pedro's: fetch failed

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Bookmark, MapPin, Star } from "lucide-react";
 import { useFavorites } from "@/components/shared/favorites-provider";
+import { PlaceImage } from "@/components/shared/place-image";
 import type { Place } from "@/types/place";
 import type { SearchIntent } from "@/types/search";
 
@@ -67,21 +67,16 @@ export function PlaceCard({
       }`}
     >
       <article>
-        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-          {place.image ? (
-            <Image
-              src={place.image}
-              alt={place.name}
-              fill
+          <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+            <PlaceImage
+              image={place.image}
+              name={place.name}
+              category={place.category}
               sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-              loading={isPriority ? "eager" : "lazy"}
+              priority={isPriority}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
-          ) : (
-            <div className="flex size-full items-center justify-center text-sm text-muted-foreground">
-              No image available
-            </div>
-          )}
+
 
           <button
             type="button"

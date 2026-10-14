@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, FolderHeart } from "lucide-react";
 
 import { Navbar } from "@/components/shared/navbar";
+import { PlaceImage } from "@/components/shared/place-image";
 import { collections } from "@/lib/collections";
 import { getPlaces } from "@/lib/places";
 
@@ -50,18 +51,17 @@ export default async function CollectionsPage() {
               >
                 <div className="grid aspect-[16/9] grid-cols-2 gap-1 bg-muted">
                   {collectionPlaces.slice(0, 2).map((place) => (
-                    <div key={place.id} className="overflow-hidden bg-muted">
-                      {place.image ? (
-                        <img
-                          src={place.image}
-                          alt={place.name}
-                          className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex size-full items-center justify-center text-xs text-muted-foreground">
-                          No image
-                        </div>
-                      )}
+                    <div
+                      key={place.id}
+                      className="relative overflow-hidden bg-muted"
+                    >
+                      <PlaceImage
+                        image={place.image}
+                        name={place.name}
+                        category={place.category}
+                        sizes="(min-width: 1024px) 16vw, 25vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
                     </div>
                   ))}
 
