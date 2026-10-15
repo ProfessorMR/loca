@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "upload.wikimedia.org" },
       { protocol: "https", hostname: "commons.wikimedia.org" },
+      // Wikimedia serves resized thumbnails from thumb.wikimedia.org
+      { protocol: "https", hostname: "**.wikimedia.org" },
     ],
   },
   experimental: {

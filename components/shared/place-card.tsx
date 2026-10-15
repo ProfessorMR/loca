@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { Bookmark, MapPin, Star } from "lucide-react";
 import { useFavorites } from "@/components/shared/favorites-provider";
+import { OpenStatus } from "@/components/shared/open-status";
 import { PlaceImage } from "@/components/shared/place-image";
+import { formatStreetAddress } from "@/lib/format-address";
 import type { Place } from "@/types/place";
 import type { SearchIntent } from "@/types/search";
 
@@ -42,6 +44,7 @@ export function PlaceCard({
   const saved = isFavorite(place.id);
 
   const hasSearch = Boolean(intent?.query.trim());
+  const streetAddress = formatStreetAddress(place.address);
 
   const reasonTags = place.tags
     .filter((tag) => {
@@ -116,6 +119,19 @@ export function PlaceCard({
               </div>
             )}
           </div>
+
+          {(place.openingHours || streetAddress) && (
+            <div className="mt-3 space-y-1.5 empty:hidden">
+              <OpenStatus openingHours={place.openingHours} />
+
+              {streetAddress && (
+                <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <MapPin className="size-3.5 shrink-0" />
+                  <span className="truncate">{streetAddress}</span>
+                </p>
+              )}
+            </div>
+          )}
 
           {(place.priceLevel || place.distance) && (
             <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">

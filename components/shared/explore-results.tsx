@@ -7,13 +7,13 @@ import { List, LoaderCircle, Map as MapIcon } from "lucide-react";
 import { ExploreFilters } from "@/components/shared/explore-filters";
 import { Map } from "@/components/shared/map";
 import { PlaceCard } from "@/components/shared/place-card";
-import type { Place } from "@/types/place";
+import type { CategoryCount, Place } from "@/types/place";
 import type { SearchIntent } from "@/types/search";
 
 type ExploreResultsProps = {
   places: Place[];
   intent: SearchIntent | null;
-  categories: string[];
+  categories: CategoryCount[];
   totalCount: number;
   page: number;
   totalPages: number;
@@ -36,9 +36,8 @@ export function ExploreResults({
   const [isPending, startTransition] = useTransition();
 
   const selectedCategory = searchParams.get("category") ?? "All";
-  const selectedSort = searchParams.get("sort") ?? "recommended";
   const query = searchParams.get("q")?.trim() ?? "";
-  const selectedPrice = searchParams.get("price") ?? "all";
+  const openNow = searchParams.get("open") === "1";
 
   const startIndex = totalCount === 0 ? 0 : (page - 1) * 24 + 1;
   const endIndex = Math.min(page * 24, totalCount);
@@ -115,11 +114,11 @@ export function ExploreResults({
       <ExploreFilters
         categories={categories}
         selectedCategory={selectedCategory}
-        selectedSort={selectedSort}
-        selectedPrice={selectedPrice}
+        openNow={openNow}
         onCategoryChange={selectCategory}
-        onSortChange={(sort) => updateSearchParams("sort", sort, "recommended")}
-        onPriceChange={(price) => updateSearchParams("price", price, "all")}
+        onOpenNowChange={(value) =>
+          updateSearchParams("open", value ? "1" : "", "")
+        }
       />
 
       <div
@@ -150,6 +149,13 @@ export function ExploreResults({
                   ? `Showing ${startIndex}–${endIndex} of ${totalCount} places`
                   : "0 places found"}
               </p>
+
+              {openNow && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Based on listed opening hours (New York time). Places
+                  without hours are not shown.
+                </p>
+              )}
             </div>
 
             <button
@@ -258,15 +264,15 @@ export function ExploreResults({
                   </button>
                 )}
 
-                {categories.slice(0, 3).map((category) => (
+                {categories.slice(0, 3).map(({ name }) => (
                   <button
-                    key={category}
+                    key={name}
                     type="button"
                     disabled={isPending}
-                    onClick={() => selectCategory(category)}
+                    onClick={() => selectCategory(name)}
                     className="rounded-full border bg-background px-4 py-2 text-sm font-medium transition-colors hover:border-foreground/30 hover:bg-muted disabled:opacity-50"
                   >
-                    {category}
+                    {name}
                   </button>
                 ))}
               </div>

@@ -9,6 +9,12 @@ export type Place = {
   image: string | null;
   description: string | null;
   address: string | null;
+  openingHours?: string | null;
   latitude: number;
   longitude: number;
+};
+
+export type CategoryCount = {
+  name: string;
+  count: number;
 };

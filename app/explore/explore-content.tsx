@@ -4,7 +4,12 @@ import Link from "next/link";
 
 import { ExploreResults } from "@/components/shared/explore-results";
 import { SearchBar } from "@/components/shared/search-bar";
-import { getPlaceCategories, searchPlaces } from "@/lib/places";
+import { describeCategories } from "@/lib/category-labels";
+import {
+  getCategoryCounts,
+  getPopularSearchTerms,
+  searchPlaces,
+} from "@/lib/places";
 import { SearchSuggestions } from "@/components/shared/search-suggestions";
 
 type ExploreContentProps = {
@@ -12,8 +17,7 @@ type ExploreContentProps = {
     q?: string;
     page?: string;
     category?: string;
-    sort?: string;
-    price?: string;
+    open?: string;
   }>;
 };
 
@@ -27,19 +31,20 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
   const category = params.category ?? "All";
-  const price = params.price ?? "all";
-  const sort = params.sort ?? "recommended";
+  const openNow = params.open === "1";
 
-  const [searchResult, categories] = await Promise.all([
+  const [searchResult, categories, suggestions] = await Promise.all([
     searchPlaces(query, {
       page,
       pageSize: 24,
       category,
-      price,
-      sort,
+      openNow,
     }),
-    getPlaceCategories(),
+    getCategoryCounts(),
+    getPopularSearchTerms(5),
   ]);
+
+  const placeCount = categories.reduce((sum, item) => sum + item.count, 0);
 
   const { places, intent, totalCount, totalPages } = searchResult;
 
@@ -64,13 +69,15 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
           <p className="mt-4 max-w-xl text-muted-foreground">
             {query
               ? `${totalCount} ${totalCount === 1 ? "place" : "places"} found`
-              : "Search for places based on what you're looking for."}
+              : `Browse ${placeCount.toLocaleString("en-US")} places across ${describeCategories(
+                  categories.map((item) => item.name),
+                )}, or search for what you're after.`}
           </p>
         </div>
 
         <div className="my-10">
           <SearchBar initialQuery={query} />
-          {!query && <SearchSuggestions />}
+          {!query && <SearchSuggestions suggestions={suggestions} />}
         </div>
 
         <ExploreResults

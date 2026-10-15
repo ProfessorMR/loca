@@ -1,9 +1,11 @@
 import "server-only";
 
+import { getOpenStatus } from "@/lib/opening-hours";
+import { pickPopularTerms } from "@/lib/popular-terms";
 import { prisma } from "@/lib/prisma";
 import { rankPlaces } from "@/lib/place-ranking";
 import { extractSearchIntent } from "@/lib/search-intent-service";
-import type { Place } from "@/types/place";
+import type { CategoryCount, Place } from "@/types/place";
 import type { SearchIntent } from "@/types/search";
 
 const placeSelect = {
@@ -16,6 +18,7 @@ const placeSelect = {
   image: true,
   description: true,
   address: true,
+  openingHours: true,
   latitude: true,
   longitude: true,
   createdAt: true,
@@ -23,12 +26,16 @@ const placeSelect = {
 
 const DEFAULT_PAGE_SIZE = 24;
 
+// No place has a price level yet, so a price word in a search ("cheap") must
+// not filter everything out. Flip this once price data exists.
+const SUPPORTS_PRICE_FILTER = false;
+
 export type SearchPlacesOptions = {
   page?: number;
   pageSize?: number;
   category?: string;
-  price?: string;
-  sort?: string;
+  /** Only places whose opening hours say they are open right now. */
+  openNow?: boolean;
 };
 
 export type SearchPlacesResult = {
@@ -50,6 +57,7 @@ type PlaceRecord = {
   image: string | null;
   description: string | null;
   address: string | null;
+  openingHours: string | null;
   latitude: number | null;
   longitude: number | null;
 };
@@ -70,44 +78,41 @@ function toPlace(place: PlaceRecord): Place | undefined {
     image: place.image,
     description: place.description,
     address: place.address,
+    openingHours: place.openingHours,
     latitude: place.latitude,
     longitude: place.longitude,
   };
 }
 
-function parseDistance(distance: string | null): number {
-  if (!distance) return Number.POSITIVE_INFINITY;
+function isOpenNow(place: Place, now: Date): boolean {
+  const status = getOpenStatus(place.openingHours, now);
 
-  const value = Number.parseFloat(distance);
-  return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
+  return status?.state === "open" || status?.state === "closing-soon";
 }
 
-function sortPlaces(places: Place[], sort: string): Place[] {
-  const sorted = [...places];
-
-  if (sort === "rating") {
-    return sorted.sort(
-      (a, b) =>
-        (b.rating ?? Number.NEGATIVE_INFINITY) -
-        (a.rating ?? Number.NEGATIVE_INFINITY),
-    );
-  }
-
-  if (sort === "distance") {
-    return sorted.sort(
-      (a, b) => parseDistance(a.distance) - parseDistance(b.distance),
-    );
-  }
-
-  return sorted;
-}
-
-function buildBaseWhere(category?: string, price?: string) {
+function buildBaseWhere(category?: string) {
   return {
     latitude: { not: null },
     longitude: { not: null },
     ...(category && category !== "All" ? { category } : {}),
-    ...(price && price !== "all" ? { priceLevel: price } : {}),
+  };
+}
+
+function paginate(
+  places: Place[],
+  intent: SearchIntent | null,
+  page: number,
+  pageSize: number,
+): SearchPlacesResult {
+  const skip = (page - 1) * pageSize;
+
+  return {
+    places: places.slice(skip, skip + pageSize),
+    intent,
+    totalCount: places.length,
+    page,
+    pageSize,
+    totalPages: Math.ceil(places.length / pageSize),
   };
 }
 
@@ -148,39 +153,30 @@ export async function searchPlaces(
     100,
   );
   const page = Math.max(Math.floor(options.page ?? 1), 1);
-  const skip = (page - 1) * pageSize;
   const category = options.category ?? "All";
-  const price = options.price ?? "all";
-  const sort = options.sort ?? "recommended";
+  const openNow = options.openNow ?? false;
+  const now = new Date();
 
-  const baseWhere = buildBaseWhere(category, price);
+  const baseWhere = buildBaseWhere(category);
 
-  if (!normalizedQuery) {
+  // Plain browsing: the database does the paging.
+  if (!normalizedQuery && !openNow) {
+    const skip = (page - 1) * pageSize;
     const totalCount = await prisma.place.count({ where: baseWhere });
-
-    const orderBy =
-      sort === "rating"
-        ? [
-            { rating: { sort: "desc" as const, nulls: "last" as const } },
-            { createdAt: "desc" as const },
-          ]
-        : [{ createdAt: "desc" as const }];
 
     const records = await prisma.place.findMany({
       where: baseWhere,
       select: placeSelect,
-      orderBy,
+      orderBy: { createdAt: "desc" },
       skip,
       take: pageSize,
     });
 
-    const places = records.flatMap((record) => {
-      const place = toPlace(record);
-      return place ? [place] : [];
-    });
-
     return {
-      places: sort === "distance" ? sortPlaces(places, sort) : places,
+      places: records.flatMap((record) => {
+        const place = toPlace(record);
+        return place ? [place] : [];
+      }),
       intent: null,
       totalCount,
       page,
@@ -189,7 +185,27 @@ export async function searchPlaces(
     };
   }
 
-  const intent = await extractSearchIntent(normalizedQuery);
+  // "Open now" can't be checked in SQL (hours are free text), so load the
+  // places that have hours and filter them here.
+  if (!normalizedQuery) {
+    const records = await prisma.place.findMany({
+      where: { ...baseWhere, openingHours: { not: null } },
+      select: placeSelect,
+      orderBy: { createdAt: "desc" },
+    });
+
+    const open = records.flatMap((record) => {
+      const place = toPlace(record);
+      return place && isOpenNow(place, now) ? [place] : [];
+    });
+
+    return paginate(open, null, page, pageSize);
+  }
+
+  const rawIntent = await extractSearchIntent(normalizedQuery);
+  const intent: SearchIntent = SUPPORTS_PRICE_FILTER
+    ? rawIntent
+    : { ...rawIntent, priceLevel: undefined };
 
   const intentWhere = {
     ...(intent.category ? { category: intent.category } : {}),
@@ -229,30 +245,108 @@ export async function searchPlaces(
     return place ? [place] : [];
   });
 
-  const rankedPlaces = sortPlaces(rankPlaces(candidates, intent), sort);
+  const ranked = rankPlaces(candidates, intent);
+  const visible = openNow
+    ? ranked.filter((place) => isOpenNow(place, now))
+    : ranked;
 
-  const totalCount = rankedPlaces.length;
-
-  return {
-    places: rankedPlaces.slice(skip, skip + pageSize),
-    intent,
-    totalCount,
-    page,
-    pageSize,
-    totalPages: Math.ceil(totalCount / pageSize),
-  };
+  return paginate(visible, intent, page, pageSize);
 }
 
-export async function getPlaceCategories(): Promise<string[]> {
-  const records = await prisma.place.findMany({
+/** Every category that really exists in the data, with its number of places. */
+export async function getCategoryCounts(): Promise<CategoryCount[]> {
+  const groups = await prisma.place.groupBy({
+    by: ["category"],
     where: {
       latitude: { not: null },
       longitude: { not: null },
     },
-    select: { category: true },
-    distinct: ["category"],
-    orderBy: { category: "asc" },
+    _count: { _all: true },
   });
 
-  return records.map((place) => place.category);
+  return groups
+    .map((group) => ({ name: group.category, count: group._count._all }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+/**
+ * A few places with complete listings (hours, phone, website, address) so the
+ * home page cards look rich, mixed across categories.
+ */
+export async function getFeaturedPlaces(perCategory = 2): Promise<Place[]> {
+  const categories = (await getCategoryCounts()).slice(0, 4);
+
+  const groups = await Promise.all(
+    categories.map(async ({ name }) => {
+      const records = await prisma.place.findMany({
+        where: {
+          ...buildBaseWhere(name),
+          openingHours: { not: null },
+          phone: { not: null },
+          website: { not: null },
+          address: { not: null },
+        },
+        select: placeSelect,
+        orderBy: { createdAt: "desc" },
+        take: perCategory * 10,
+      });
+
+      // Skip repeated names so chains (McDonald's, Starbucks...) show once.
+      const seen = new Set<string>();
+
+      return records
+        .flatMap((record) => {
+          const place = toPlace(record);
+          return place ? [place] : [];
+        })
+        .filter((place) => {
+          const key = place.name.trim().toLowerCase();
+          if (seen.has(key)) return false;
+
+          seen.add(key);
+          return true;
+        })
+        .slice(0, perCategory);
+    }),
+  );
+
+  // Round-robin so the first cards are not all the same category.
+  const mixed: Place[] = [];
+
+  for (let i = 0; i < perCategory; i++) {
+    for (const group of groups) {
+      if (group[i]) mixed.push(group[i]);
+    }
+  }
+
+  return mixed;
+}
+
+/**
+ * Quick-search words taken from the data: food words that really appear in
+ * place names, most common first. Words that the search turns into a whole
+ * category (like "coffee") are skipped, since categories have their own cards.
+ */
+export async function getPopularSearchTerms(limit = 6): Promise<string[]> {
+  const records = await prisma.place.findMany({
+    where: { latitude: { not: null }, longitude: { not: null } },
+    select: { name: true },
+  });
+
+  const terms = pickPopularTerms(
+    records.map((record) => record.name),
+    { limit: limit + 4, minCount: 10 },
+  );
+
+  // A term is only a plain name search if it does not map to a category.
+  const checked = await Promise.all(
+    terms.map(async (term) => {
+      const intent = await extractSearchIntent(term.label);
+      return intent.category ? null : term.label;
+    }),
+  );
+
+  return checked
+    .filter((label): label is string => label !== null)
+    .slice(0, limit);
 }

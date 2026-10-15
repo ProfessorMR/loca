@@ -2,14 +2,11 @@
 
 import { useRouter } from "next/navigation";
 
-const suggestions = [
-  "A quiet cafe for working",
-  "A cheap restaurant for dinner",
-  "A cozy place for a date",
-  "A peaceful place outdoors",
-];
+type SearchSuggestionsProps = {
+  suggestions: string[];
+};
 
-export function SearchSuggestions() {
+export function SearchSuggestions({ suggestions }: SearchSuggestionsProps) {
   const router = useRouter();
 
   function handleSuggestion(query: string) {
@@ -18,6 +15,8 @@ export function SearchSuggestions() {
 
     router.push(`/explore?${params.toString()}`);
   }
+
+  if (suggestions.length === 0) return null;
 
   return (
     <div className="mt-4 flex flex-wrap gap-2">

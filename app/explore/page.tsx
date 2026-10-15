@@ -7,8 +7,7 @@ type ExplorePageProps = {
     q?: string;
     page?: string;
     category?: string;
-    sort?: string;
-    price?: string;
+    open?: string;
   }>;
 };
 

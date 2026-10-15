@@ -1,105 +1,80 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
-
-const priceOptions = [
-  { label: "Any price", value: "all" },
-  { label: "$", value: "$" },
-  { label: "$$", value: "$$" },
-  { label: "$$$", value: "$$$" },
-];
-
-const sortOptions = [
-  { label: "Recommended", value: "recommended" },
-  { label: "Highest rated", value: "rating" },
-  { label: "Closest", value: "distance" },
-];
+import type { CategoryCount } from "@/types/place";
 
 type ExploreFiltersProps = {
+  categories: CategoryCount[];
   selectedCategory: string;
-  selectedSort: string;
-  selectedPrice: string;
+  openNow: boolean;
   onCategoryChange: (category: string) => void;
-  onSortChange: (sort: string) => void;
-  onPriceChange: (price: string) => void;
-  categories: string[];
+  onOpenNowChange: (openNow: boolean) => void;
 };
+
+const pillBase =
+  "shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors";
+const pillIdle =
+  "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground";
 
 export function ExploreFilters({
   categories,
   selectedCategory,
-  selectedSort,
-  selectedPrice,
+  openNow,
   onCategoryChange,
-  onSortChange,
-  onPriceChange,
+  onOpenNowChange,
 }: ExploreFiltersProps) {
-  const categoryOptions = ["All", ...categories];
+  const total = categories.reduce((sum, category) => sum + category.count, 0);
+
+  const options = [
+    { name: "All", count: total },
+    ...categories.map(({ name, count }) => ({ name, count })),
+  ];
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <div className="flex min-w-0 gap-2 overflow-x-auto pb-1">
-        {categoryOptions.map((category) => {
-          const isSelected = selectedCategory === category;
+        {options.map(({ name, count }) => {
+          const isSelected = selectedCategory === name;
 
           return (
             <button
-              key={category}
+              key={name}
               type="button"
-              onClick={() => onCategoryChange(category)}
-              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+              onClick={() => onCategoryChange(name)}
+              aria-pressed={isSelected}
+              className={`${pillBase} ${
                 isSelected
                   ? "border-foreground bg-foreground text-background"
-                  : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                  : pillIdle
               }`}
             >
-              {category}
+              {name}
+
+              <span className="ml-2 text-xs tabular-nums opacity-60">
+                {count.toLocaleString("en-US")}
+              </span>
             </button>
           );
         })}
       </div>
 
-      <div className="flex shrink-0 flex-wrap justify-end gap-2">
-        <div className="relative">
-          <select
-            value={selectedPrice}
-            onChange={(event) => onPriceChange(event.target.value)}
-            className="h-10 appearance-none rounded-full border bg-background py-2 pl-4 pr-10 text-sm font-medium outline-none transition-colors hover:border-foreground/30 focus:border-foreground"
-            aria-label="Filter by price"
-          >
-            {priceOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-
-          <ChevronDown
-            className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
-        </div>
-
-        <div className="relative">
-          <select
-            value={selectedSort}
-            onChange={(event) => onSortChange(event.target.value)}
-            className="h-10 appearance-none rounded-full border bg-background py-2 pl-4 pr-10 text-sm font-medium outline-none transition-colors hover:border-foreground/30 focus:border-foreground"
-            aria-label="Sort places"
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-
-          <ChevronDown
-            className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
-        </div>
-      </div>
+      <button
+        type="button"
+        onClick={() => onOpenNowChange(!openNow)}
+        aria-pressed={openNow}
+        className={`${pillBase} inline-flex items-center gap-2 self-start sm:self-auto ${
+          openNow
+            ? "border-emerald-600 bg-emerald-600 text-white"
+            : pillIdle
+        }`}
+      >
+        <span
+          aria-hidden="true"
+          className={`size-2 rounded-full ${
+            openNow ? "bg-white" : "bg-emerald-500"
+          }`}
+        />
+        Open now
+      </button>
     </div>
   );
 }
