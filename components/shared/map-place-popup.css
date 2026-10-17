@@ -1,7 +1,7 @@
 .loca-place-popup .maplibregl-popup-content {
   padding: 0;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 16px;
   box-shadow:
     0 20px 50px rgba(0, 0, 0, 0.14),
     0 4px 12px rgba(0, 0, 0, 0.08);
@@ -9,15 +9,15 @@
 
 .loca-place-popup .maplibregl-popup-close-button {
   z-index: 10;
-  top: 10px;
-  right: 10px;
-  width: 28px;
-  height: 28px;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.92);
   color: #171717;
   font-size: 18px;
-  line-height: 28px;
+  line-height: 26px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
@@ -30,14 +30,14 @@
 }
 
 .loca-popup {
-  width: 300px;
+  width: 250px;
   overflow: hidden;
   background: white;
+  color: #171717;
 }
 
 .loca-popup__image {
-  position: relative;
-  height: 150px;
+  height: 120px;
   overflow: hidden;
   background: #f5f5f5;
 }
@@ -49,64 +49,92 @@
   object-fit: cover;
 }
 
-.loca-popup__category {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  padding: 5px 9px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #171717;
-  font-size: 11px;
-  font-weight: 600;
-  backdrop-filter: blur(8px);
+.loca-popup__content {
+  padding: 14px 16px 16px;
 }
 
-.loca-popup__content {
-  padding: 16px;
+.loca-popup__category {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding-right: 24px; /* keeps clear of the close button */
+  color: #737373;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.loca-popup__swatch {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
 }
 
 .loca-popup__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
+  margin-top: 6px;
 }
 
 .loca-popup__title {
   margin: 0;
-  color: #171717;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.3;
 }
 
-.loca-popup__meta {
-  margin: 5px 0 0;
-  color: #737373;
+.loca-popup__rating {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.loca-popup__status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 10px 0 0;
   font-size: 12px;
   line-height: 1.4;
 }
 
-.loca-popup__rating {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 4px;
-  color: #171717;
-  font-size: 13px;
-  font-weight: 600;
+.loca-popup__status span:last-child {
+  color: #525252;
 }
 
-.loca-popup__description {
-  display: -webkit-box;
-  margin: 14px 0 16px;
-  overflow: hidden;
+.loca-popup__status strong {
+  color: #171717;
+}
+
+.loca-popup__dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+}
+
+.loca-popup__dot--open {
+  background: #10b981;
+}
+
+.loca-popup__dot--closing-soon {
+  background: #f59e0b;
+}
+
+.loca-popup__dot--closed {
+  background: #ef4444;
+}
+
+.loca-popup__details {
+  margin: 4px 0 0;
   color: #737373;
   font-size: 12px;
-  line-height: 1.6;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  line-height: 1.5;
 }
 
 .loca-popup__button {
@@ -114,7 +142,8 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 10px 13px;
+  margin-top: 14px;
+  padding: 9px 12px;
   border-radius: 10px;
   background: #18181b;
   color: white;

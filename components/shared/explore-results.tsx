@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { List, LoaderCircle, Map as MapIcon } from "lucide-react";
 
 import { ExploreFilters } from "@/components/shared/explore-filters";
+import { useExploreNavigation } from "@/components/shared/explore-navigation";
 import { Map } from "@/components/shared/map";
 import { PlaceCard } from "@/components/shared/place-card";
 import type { CategoryCount, Place } from "@/types/place";
@@ -27,13 +28,21 @@ export function ExploreResults({
   page,
   totalPages,
 }: ExploreResultsProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const navigation = useExploreNavigation();
+
+  if (!navigation) {
+    throw new Error(
+      "ExploreResults must be used inside ExploreNavigationProvider",
+    );
+  }
+
+  // Shared with the search bar, so searching shows the same loading state.
+  const { isPending, pendingLabel } = navigation;
 
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [showMobileMap, setShowMobileMap] = useState(false);
-  const [isPending, startTransition] = useTransition();
 
   const selectedCategory = searchParams.get("category") ?? "All";
   const query = searchParams.get("q")?.trim() ?? "";
@@ -42,11 +51,18 @@ export function ExploreResults({
   const startIndex = totalCount === 0 ? 0 : (page - 1) * 24 + 1;
   const endIndex = Math.min(page * 24, totalCount);
 
+  // A marker was clicked on the map: show its card in the list.
+  function handleMarkerClick(placeId: string) {
+    setSelectedPlaceId(placeId);
+
+    document
+      .getElementById(`place-${placeId}`)
+      ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
   function navigate(url: string) {
     setSelectedPlaceId(null);
-    startTransition(() => {
-      router.push(url);
-    });
+    navigation?.navigate(url);
   }
 
   function updateSearchParams(
@@ -101,13 +117,9 @@ export function ExploreResults({
     params.delete("q");
     params.delete("page");
 
-    setSelectedPlaceId(null);
-
     const queryString = params.toString();
 
-    startTransition(() => {
-      router.push(queryString ? `${pathname}?${queryString}` : pathname);
-    });
+    navigate(queryString ? `${pathname}?${queryString}` : pathname);
   }
   return (
     <div className="mt-12">
@@ -129,7 +141,7 @@ export function ExploreResults({
         {isPending && (
           <>
             <LoaderCircle className="size-4 animate-spin" />
-            <span>Updating places...</span>
+            <span>{pendingLabel}</span>
           </>
         )}
       </div>
@@ -152,8 +164,8 @@ export function ExploreResults({
 
               {openNow && (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Based on listed opening hours (New York time). Places
-                  without hours are not shown.
+                  Based on listed opening hours (New York time). Places without
+                  hours are not shown.
                 </p>
               )}
             </div>
@@ -184,6 +196,7 @@ export function ExploreResults({
                 places={places}
                 selectedPlaceId={selectedPlaceId}
                 onPlaceHover={setSelectedPlaceId}
+                onPlaceClick={handleMarkerClick}
               />
             </div>
           )}
@@ -192,15 +205,20 @@ export function ExploreResults({
             <>
               <div className="mt-5 grid gap-5 md:grid-cols-2">
                 {places.map((place, index) => (
-                  <PlaceCard
+                  <div
                     key={place.id}
-                    place={place}
-                    intent={intent ?? undefined}
-                    isPriority={index === 0}
-                    isSelected={selectedPlaceId === place.id}
-                    onHover={() => setSelectedPlaceId(place.id)}
-                    onClick={() => setSelectedPlaceId(place.id)}
-                  />
+                    id={`place-${place.id}`}
+                    className="scroll-mt-6"
+                  >
+                    <PlaceCard
+                      place={place}
+                      intent={intent ?? undefined}
+                      isPriority={index === 0}
+                      isSelected={selectedPlaceId === place.id}
+                      onHover={() => setSelectedPlaceId(place.id)}
+                      onClick={() => setSelectedPlaceId(place.id)}
+                    />
+                  </div>
                 ))}
               </div>
 
@@ -295,6 +313,7 @@ export function ExploreResults({
               places={places}
               selectedPlaceId={selectedPlaceId}
               onPlaceHover={setSelectedPlaceId}
+              onPlaceClick={handleMarkerClick}
             />
           </div>
         </aside>

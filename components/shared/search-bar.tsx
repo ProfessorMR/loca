@@ -1,8 +1,10 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { ArrowUpRight, Search } from "lucide-react";
+import { FormEvent, useState, useTransition } from "react";
+import { ArrowUpRight, LoaderCircle, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+import { useExploreNavigation } from "@/components/shared/explore-navigation";
 
 type SearchBarProps = {
   initialQuery?: string;
@@ -15,7 +17,24 @@ export function SearchBar({
 }: SearchBarProps) {
   const router = useRouter();
 
+  // On the explore page the loading state is shared with the results. On the
+  // home page there is no results area, so the bar keeps its own.
+  const navigation = useExploreNavigation();
+  const [isLocalPending, startLocalTransition] = useTransition();
+  const isPending = navigation ? navigation.isPending : isLocalPending;
+
   const [query, setQuery] = useState(initialQuery);
+
+  function go(url: string, label?: string) {
+    if (navigation) {
+      navigation.navigate(url, label);
+      return;
+    }
+
+    startLocalTransition(() => {
+      router.push(url);
+    });
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,7 +42,7 @@ export function SearchBar({
     const trimmedQuery = query.trim();
 
     if (!trimmedQuery) {
-      router.push("/explore");
+      go("/explore");
       return;
     }
 
@@ -31,12 +50,13 @@ export function SearchBar({
 
     params.set("q", trimmedQuery);
 
-    router.push(`/explore?${params.toString()}`);
+    go(`/explore?${params.toString()}`, "Understanding your search…");
   }
 
   return (
     <form
       onSubmit={handleSubmit}
+      aria-busy={isPending}
       className="flex items-center gap-3 rounded-2xl border bg-background p-2 shadow-sm transition-shadow focus-within:shadow-md"
     >
       <Search
@@ -55,12 +75,16 @@ export function SearchBar({
       <button
         type="submit"
         className="group flex size-12 shrink-0 items-center justify-center rounded-xl bg-foreground text-background transition-transform hover:scale-[1.03]"
-        aria-label="Search"
+        aria-label={isPending ? "Searching" : "Search"}
       >
-        <ArrowUpRight
-          className="size-5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-          aria-hidden="true"
-        />
+        {isPending ? (
+          <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
+        ) : (
+          <ArrowUpRight
+            className="size-5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+            aria-hidden="true"
+          />
+        )}
       </button>
     </form>
   );

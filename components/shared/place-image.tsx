@@ -10,6 +10,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 
+import { CATEGORY_HUES } from "@/lib/category-colors";
 import { cn } from "@/lib/utils";
 
 /**
@@ -27,12 +28,12 @@ type CategoryStyle = {
 };
 
 const categoryStyles: Record<string, CategoryStyle> = {
-  Restaurant: { hue: 8, Icon: Utensils },
-  "Fast Food": { hue: 36, Icon: Utensils },
-  Cafe: { hue: 168, Icon: Coffee },
-  Bar: { hue: 275, Icon: Martini },
-  Hotel: { hue: 214, Icon: Hotel },
-  Park: { hue: 140, Icon: TreePine },
+  Restaurant: { hue: CATEGORY_HUES.Restaurant, Icon: Utensils },
+  "Fast Food": { hue: CATEGORY_HUES["Fast Food"], Icon: Utensils },
+  Cafe: { hue: CATEGORY_HUES.Cafe, Icon: Coffee },
+  Bar: { hue: CATEGORY_HUES.Bar, Icon: Martini },
+  Hotel: { hue: CATEGORY_HUES.Hotel, Icon: Hotel },
+  Park: { hue: CATEGORY_HUES.Park, Icon: TreePine },
 };
 
 const fallbackStyle: CategoryStyle = { hue: 220, Icon: Store };

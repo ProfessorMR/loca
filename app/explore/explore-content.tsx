@@ -5,6 +5,10 @@ import Link from "next/link";
 import { ExploreResults } from "@/components/shared/explore-results";
 import { headers } from "next/headers";
 
+import {
+  ExploreNavigationProvider,
+  PendingFade,
+} from "@/components/shared/explore-navigation";
 import { SearchBar } from "@/components/shared/search-bar";
 import { SearchUnderstanding } from "@/components/shared/search-understanding";
 import { describeCategories } from "@/lib/category-labels";
@@ -61,52 +65,59 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
 
   return (
     <main className="min-h-screen">
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-          Back
-        </Link>
+      <ExploreNavigationProvider>
+        <div className="mx-auto max-w-7xl px-6 py-10">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="size-4" />
+            Back
+          </Link>
 
-        <div className="mt-12">
-          <p className="text-sm font-medium text-emerald-600">Explore</p>
+          <PendingFade className="mt-12">
+            <p className="text-sm font-medium text-emerald-600">Explore</p>
 
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
-            {query ? `Results for "${query}"` : "Find your next place."}
-          </h1>
+            <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
+              {query ? `Results for "${query}"` : "Find your next place."}
+            </h1>
 
-          <p className="mt-4 max-w-xl text-muted-foreground">
-            {query
-              ? `${totalCount} ${totalCount === 1 ? "place" : "places"} found`
-              : `Browse ${placeCount.toLocaleString("en-US")} places across ${describeCategories(
-                  categories.map((item) => item.name),
-                )}, or describe what you're after.`}
-          </p>
-        </div>
+            <p className="mt-4 max-w-xl text-muted-foreground">
+              {query
+                ? `${totalCount} ${totalCount === 1 ? "place" : "places"} found`
+                : `Browse ${placeCount.toLocaleString("en-US")} places across ${describeCategories(
+                    categories.map((item) => item.name),
+                  )}, or describe what you're after.`}
+            </p>
+          </PendingFade>
 
-        <div className="my-10">
-          <SearchBar
-            initialQuery={query}
-            placeholder={
-              suggestions[0] ? `Try “${suggestions[0]}”` : undefined
-            }
+          <div className="my-10">
+            <SearchBar
+              key={query}
+              initialQuery={query}
+              placeholder={
+                suggestions[0] ? `Try “${suggestions[0]}”` : undefined
+              }
+            />
+            {!query && <SearchSuggestions suggestions={suggestions} />}
+          </div>
+
+          {query && intent && (
+            <PendingFade>
+              <SearchUnderstanding intent={intent} />
+            </PendingFade>
+          )}
+
+          <ExploreResults
+            places={places}
+            intent={intent}
+            categories={categories}
+            totalCount={totalCount}
+            page={page}
+            totalPages={totalPages}
           />
-          {!query && <SearchSuggestions suggestions={suggestions} />}
         </div>
-
-        {query && intent && <SearchUnderstanding intent={intent} />}
-
-        <ExploreResults
-          places={places}
-          intent={intent}
-          categories={categories}
-          totalCount={totalCount}
-          page={page}
-          totalPages={totalPages}
-        />
-      </div>
+      </ExploreNavigationProvider>
     </main>
   );
 }
