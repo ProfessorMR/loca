@@ -6,6 +6,7 @@ import { useFavorites } from "@/components/shared/favorites-provider";
 import { OpenStatus } from "@/components/shared/open-status";
 import { PlaceImage } from "@/components/shared/place-image";
 import { formatStreetAddress } from "@/lib/format-address";
+import { formatTag, isFeatureTag } from "@/lib/osm-tags";
 import type { Place } from "@/types/place";
 import type { SearchIntent } from "@/types/search";
 
@@ -16,20 +17,6 @@ type PlaceCardProps = {
   onClick?: () => void;
   isPriority?: boolean;
   intent?: SearchIntent;
-};
-
-const tagLabels: Record<string, string> = {
-  quiet: "Quiet",
-  "work-friendly": "Work-friendly",
-  cozy: "Cozy",
-  relaxing: "Relaxing",
-  casual: "Casual",
-  nature: "Nature",
-  outdoor: "Outdoor",
-  dinner: "Dinner",
-  coffee: "Coffee",
-  food: "Food",
-  date: "Date-friendly",
 };
 
 export function PlaceCard({
@@ -46,14 +33,22 @@ export function PlaceCard({
   const hasSearch = Boolean(intent?.query.trim());
   const streetAddress = formatStreetAddress(place.address);
 
-  const reasonTags = place.tags
-    .filter((tag) => {
-      if (!tagLabels[tag]) return false;
-      if (!hasSearch) return true;
-
-      return intent?.tags.includes(tag) ?? false;
-    })
-    .slice(0, 3);
+  // Tags the search asked for come first, then what the place serves, then
+  // other facts, three at most.
+  const requested = new Set([
+    ...(intent?.cuisines ?? []),
+    ...(intent?.features ?? []),
+  ]);
+  const matchedTags = hasSearch
+    ? place.tags.filter((tag) => requested.has(tag))
+    : [];
+  const reasonTags = Array.from(
+    new Set([
+      ...matchedTags,
+      ...place.tags.filter((tag) => !isFeatureTag(tag)).slice(0, 2),
+      ...place.tags.filter(isFeatureTag),
+    ]),
+  ).slice(0, 3);
 
   const matchesPrice =
     hasSearch &&
@@ -151,7 +146,7 @@ export function PlaceCard({
           {(reasonTags.length > 0 || matchesPrice) && (
             <div className="mt-4 border-t pt-3">
               <p className="mb-2 text-xs font-medium text-muted-foreground">
-                {hasSearch ? "Why this matches" : "Features"}
+                {matchedTags.length > 0 ? "Why this matches" : "Features"}
               </p>
 
               <div className="flex flex-wrap gap-1.5">
@@ -160,7 +155,7 @@ export function PlaceCard({
                     key={tag}
                     className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400"
                   >
-                    {tagLabels[tag]}
+                    {formatTag(tag)}
                   </span>
                 ))}
 

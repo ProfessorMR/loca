@@ -11,12 +11,17 @@ type HeroProps = {
    */
   popularSearches?: string[];
   subtitle?: string;
+  placeholder?: string;
 };
 
 const defaultSubtitle =
-  "Tell us what you're looking for and discover places that actually match what you want.";
+  "Describe what you're after in your own words and discover places that match.";
 
-export function Hero({ popularSearches, subtitle = defaultSubtitle }: HeroProps) {
+export function Hero({
+  popularSearches,
+  subtitle = defaultSubtitle,
+  placeholder,
+}: HeroProps) {
   const router = useRouter();
 
   return (
@@ -39,7 +44,7 @@ export function Hero({ popularSearches, subtitle = defaultSubtitle }: HeroProps)
 
           {/* Search */}
           <div className="mt-10 max-w-2xl">
-            <SearchBar />
+            <SearchBar placeholder={placeholder} />
 
             {popularSearches === undefined && (
               <div aria-hidden="true" className="mt-5 h-8" />

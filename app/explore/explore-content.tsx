@@ -3,11 +3,14 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 import { ExploreResults } from "@/components/shared/explore-results";
+import { headers } from "next/headers";
+
 import { SearchBar } from "@/components/shared/search-bar";
+import { SearchUnderstanding } from "@/components/shared/search-understanding";
 import { describeCategories } from "@/lib/category-labels";
 import {
   getCategoryCounts,
-  getPopularSearchTerms,
+  getSearchSuggestions,
   searchPlaces,
 } from "@/lib/places";
 import { SearchSuggestions } from "@/components/shared/search-suggestions";
@@ -33,15 +36,23 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
   const category = params.category ?? "All";
   const openNow = params.open === "1";
 
+  // Used only to limit how many AI searches one visitor can run.
+  const requestHeaders = await headers();
+  const clientKey =
+    requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    requestHeaders.get("x-real-ip") ||
+    "unknown";
+
   const [searchResult, categories, suggestions] = await Promise.all([
     searchPlaces(query, {
       page,
       pageSize: 24,
       category,
       openNow,
+      clientKey,
     }),
     getCategoryCounts(),
-    getPopularSearchTerms(5),
+    getSearchSuggestions(5),
   ]);
 
   const placeCount = categories.reduce((sum, item) => sum + item.count, 0);
@@ -71,14 +82,21 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
               ? `${totalCount} ${totalCount === 1 ? "place" : "places"} found`
               : `Browse ${placeCount.toLocaleString("en-US")} places across ${describeCategories(
                   categories.map((item) => item.name),
-                )}, or search for what you're after.`}
+                )}, or describe what you're after.`}
           </p>
         </div>
 
         <div className="my-10">
-          <SearchBar initialQuery={query} />
+          <SearchBar
+            initialQuery={query}
+            placeholder={
+              suggestions[0] ? `Try “${suggestions[0]}”` : undefined
+            }
+          />
           {!query && <SearchSuggestions suggestions={suggestions} />}
         </div>
+
+        {query && intent && <SearchUnderstanding intent={intent} />}
 
         <ExploreResults
           places={places}

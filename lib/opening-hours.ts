@@ -21,7 +21,7 @@ const DAY_INDEX: Record<string, number> = {
   Su: 6,
 };
 
-const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+export const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const WEEKDAY_FROM_INTL: Record<string, number> = {
   Mon: 0,
   Tue: 1,
@@ -170,7 +170,11 @@ function getParsed(raw: string): Parsed | null {
   return parseCache.get(raw) ?? null;
 }
 
-function localTime(now: Date, timeZone: string): { day: number; minute: number } {
+/** Day of week (0 = Monday) and minutes after midnight in the given time zone. */
+export function localTime(
+  now: Date,
+  timeZone = "America/New_York",
+): { day: number; minute: number } {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,
     weekday: "short",
@@ -187,7 +191,7 @@ function localTime(now: Date, timeZone: string): { day: number; minute: number }
   };
 }
 
-function formatTime(minuteOfDay: number): string {
+export function formatTime(minuteOfDay: number): string {
   const total = ((minuteOfDay % 1440) + 1440) % 1440;
   if (total === 0) return "midnight";
 
@@ -302,4 +306,29 @@ export function getOpenStatus(
     headline: "Closed",
     detail: findNextOpening(parsed, day, minute) ?? "",
   };
+}
+
+/**
+ * Is the place open at this weekday and time? Returns null when the hours
+ * can't be read, so callers can treat "unknown" differently from "closed".
+ */
+export function isOpenAt(
+  raw: string | null | undefined,
+  day: number,
+  minute: number,
+): boolean | null {
+  if (!raw) return null;
+
+  const parsed = getParsed(raw);
+  if (!parsed) return null;
+  if (parsed === "always") return true;
+
+  if (parsed[day].some(([start, end]) => minute >= start && minute < end)) {
+    return true;
+  }
+
+  // late-night hours that started yesterday
+  return parsed[(day + 6) % 7].some(
+    ([, end]) => end > 1440 && minute < end - 1440,
+  );
 }

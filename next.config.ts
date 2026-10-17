@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.wikimedia.org" },
     ],
   },
+  // Collections were demo data that did not match the real places. Send anyone
+  // with an old link to their saved places.
+  async redirects() {
+    return [
+      { source: "/collections", destination: "/saved", permanent: false },
+      { source: "/collections/:id", destination: "/saved", permanent: false },
+    ];
+  },
   experimental: {
     agentFeedback: true,
   },

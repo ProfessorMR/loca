@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { FavoritesProvider } from "@/components/shared/favorites-provider";
+import { Footer } from "@/components/shared/footer";
 import { Suspense } from "react";
 
 const geistSans = Geist({
@@ -41,6 +42,8 @@ export default function RootLayout({
           >
             {children}
           </Suspense>
+
+          <Footer />
         </FavoritesProvider>
       </body>
     </html>

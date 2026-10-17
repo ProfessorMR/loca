@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+import { parseIdList } from "@/lib/place-ids";
+import { getPlacesByIds } from "@/lib/places";
+
+// Returns only the places that were asked for. It used to return every place,
+// which was slow and let anyone download the whole database.
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const parsed = parseIdList(searchParams.get("ids"));
+
+  if ("error" in parsed) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
+
   try {
-    const places = await prisma.place.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    const places = await getPlacesByIds(parsed.ids);
 
     return NextResponse.json({ places });
   } catch (error) {

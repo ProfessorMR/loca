@@ -9,52 +9,54 @@ import { PlaceCard } from "@/components/shared/place-card";
 import { useFavorites } from "@/components/shared/favorites-provider";
 import type { Place } from "@/types/place";
 
-export default function SavedPage() {
-  const { favoritePlaceIds } = useFavorites();
+type LoadedPlaces = {
+  /** Which list of ids these places belong to */
+  key: string;
+  places: Place[];
+  failed: boolean;
+};
 
-  const [places, setPlaces] = useState<Place[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+export default function SavedPage() {
+  const { favoritePlaceIds, isReady } = useFavorites();
+
+  // Newest saved first.
+  const orderedIds = [...favoritePlaceIds].reverse();
+  const idsKey = orderedIds.join(",");
+
+  const [loaded, setLoaded] = useState<LoadedPlaces | null>(null);
 
   useEffect(() => {
+    if (idsKey === "") return;
+
     let isActive = true;
 
-    async function fetchPlaces() {
-      try {
-        const response = await fetch("/api/places");
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch places");
-        }
-
-        const data: { places: Place[] } = await response.json();
-
+    fetch(`/api/places?ids=${encodeURIComponent(idsKey)}`)
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to fetch places");
+        return response.json() as Promise<{ places: Place[] }>;
+      })
+      .then((data) => {
         if (isActive) {
-          setPlaces(data.places);
+          setLoaded({ key: idsKey, places: data.places, failed: false });
         }
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error("Failed to load saved places:", error);
 
         if (isActive) {
-          setHasError(true);
+          setLoaded({ key: idsKey, places: [], failed: true });
         }
-      } finally {
-        if (isActive) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    fetchPlaces();
+      });
 
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [idsKey]);
 
-  const savedPlaces = places.filter((place) =>
-    favoritePlaceIds.includes(place.id),
-  );
+  const isCurrent = loaded?.key === idsKey;
+  const isLoading = !isReady || (idsKey !== "" && !isCurrent);
+  const hasError = isCurrent && loaded.failed;
+  const savedPlaces = idsKey !== "" && isCurrent ? loaded.places : [];
 
   return (
     <main className="min-h-screen">
@@ -77,7 +79,7 @@ export default function SavedPage() {
           </h1>
 
           <p className="mt-4 text-muted-foreground">
-            Places you want to come back to.
+            Places you want to come back to. They are kept in this browser.
           </p>
         </div>
 
@@ -95,7 +97,9 @@ export default function SavedPage() {
           </div>
         ) : hasError ? (
           <div className="mt-10 rounded-3xl border border-dashed p-12 text-center">
-            <h2 className="font-semibold">Couldn't load saved places</h2>
+            <h2 className="font-semibold">
+              Couldn&apos;t load your saved places
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Please try again in a moment.
             </p>

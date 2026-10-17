@@ -1,9 +1,13 @@
 import "server-only";
 
-import { getOpenStatus } from "@/lib/opening-hours";
+import { getCategoryLabel } from "@/lib/category-labels";
+import { AREAS, haversineKm, formatMiles } from "@/lib/nyc-areas";
+import type { Area } from "@/lib/nyc-areas";
+import { getOpenStatus, isOpenAt } from "@/lib/opening-hours";
+import { FEATURE_TAGS, formatTag, isFeatureTag } from "@/lib/osm-tags";
 import { pickPopularTerms } from "@/lib/popular-terms";
 import { prisma } from "@/lib/prisma";
-import { rankPlaces } from "@/lib/place-ranking";
+import { parseSearchIntent } from "@/lib/search-intent";
 import { extractSearchIntent } from "@/lib/search-intent-service";
 import type { CategoryCount, Place } from "@/types/place";
 import type { SearchIntent } from "@/types/search";
@@ -26,16 +30,14 @@ const placeSelect = {
 
 const DEFAULT_PAGE_SIZE = 24;
 
-// No place has a price level yet, so a price word in a search ("cheap") must
-// not filter everything out. Flip this once price data exists.
-const SUPPORTS_PRICE_FILTER = false;
-
 export type SearchPlacesOptions = {
   page?: number;
   pageSize?: number;
   category?: string;
   /** Only places whose opening hours say they are open right now. */
   openNow?: boolean;
+  /** Who is searching (an IP address), used to limit AI calls per visitor */
+  clientKey?: string;
 };
 
 export type SearchPlacesResult = {
@@ -143,6 +145,32 @@ export async function getPlaceById(id: string): Promise<Place | undefined> {
   return toPlace(record);
 }
 
+/** The places with these ids, in the same order. Unknown ids are skipped. */
+export async function getPlacesByIds(ids: string[]): Promise<Place[]> {
+  if (ids.length === 0) return [];
+
+  const records = await prisma.place.findMany({
+    where: {
+      id: { in: ids },
+      latitude: { not: null },
+      longitude: { not: null },
+    },
+    select: placeSelect,
+  });
+
+  const byId = new Map<string, Place>();
+
+  for (const record of records) {
+    const place = toPlace(record);
+    if (place) byId.set(place.id, place);
+  }
+
+  return ids.flatMap((id) => {
+    const place = byId.get(id);
+    return place ? [place] : [];
+  });
+}
+
 export async function searchPlaces(
   query: string,
   options: SearchPlacesOptions = {},
@@ -202,32 +230,200 @@ export async function searchPlaces(
     return paginate(open, null, page, pageSize);
   }
 
-  const rawIntent = await extractSearchIntent(normalizedQuery);
-  const intent: SearchIntent = SUPPORTS_PRICE_FILTER
-    ? rawIntent
-    : { ...rawIntent, priceLevel: undefined };
+  const [categoryCounts, areas, vocabulary] = await Promise.all([
+    getCategoryCounts(),
+    getCoveredAreas(),
+    getTagVocabulary(),
+  ]);
 
-  const intentWhere = {
-    ...(intent.category ? { category: intent.category } : {}),
-    ...(intent.priceLevel ? { priceLevel: intent.priceLevel } : {}),
-  };
+  const intent = await extractSearchIntent(
+    normalizedQuery,
+    {
+      categories: categoryCounts.map((item) => item.name),
+      areas,
+      cuisines: vocabulary.cuisines,
+      features: vocabulary.features,
+    },
+    { clientKey: options.clientKey },
+  );
 
-  const queryTerms = normalizedQuery.split(/\s+/).filter(Boolean);
+  const { intent: finalIntent, results } = await searchWithRelaxation(intent, {
+    category,
+    openNow,
+    now,
+  });
+
+  return paginate(results, finalIntent, page, pageSize);
+}
+
+type RunOptions = { category: string; openNow: boolean; now: Date };
+
+/** All ways to keep `size` items of a list, in the original order. */
+function combinations<T>(items: T[], size: number): T[][] {
+  if (size === 0) return [[]];
+  if (items.length < size) return [];
+
+  const [first, ...rest] = items;
+
+  return [
+    ...combinations(rest, size - 1).map((tail) => [first, ...tail]),
+    ...combinations(rest, size),
+  ];
+}
+
+function joinWords(words: string[]): string {
+  return words.length <= 1
+    ? (words[0] ?? "")
+    : `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`;
+}
+
+/**
+ * Runs the search. When nothing matches everything, it loosens the request one
+ * step at a time (fewer features, a wider area, no time) and says what it
+ * dropped, instead of leaving the person with an empty page.
+ */
+async function searchWithRelaxation(
+  intent: SearchIntent,
+  options: RunOptions,
+): Promise<{ intent: SearchIntent; results: Place[] }> {
+  const results = await runIntentSearch(intent, options);
+
+  if (results.length > 0) return { intent, results };
+
+  const relaxedIntent = (changed: SearchIntent, note: string): SearchIntent => ({
+    ...changed,
+    // the AI summary described the original request, which no longer applies
+    summary: undefined,
+    relaxed: note,
+  });
+
+  const features = intent.features ?? [];
+  const where = intent.near ? ` near ${intent.near.label}` : "";
+
+  // 1. Keep as many features as possible.
+  for (let keep = features.length - 1; keep >= 0 && features.length > 0; keep--) {
+    for (const subset of combinations(features, keep)) {
+      const attempt = { ...intent, features: subset };
+      const found = await runIntentSearch(attempt, options);
+
+      if (found.length > 0) {
+        const dropped = features.filter((feature) => !subset.includes(feature));
+
+        return {
+          intent: relaxedIntent(
+            attempt,
+            `No place${where} lists ${joinWords(features)} together, so I left out ${joinWords(dropped)}.`,
+          ),
+          results: found,
+        };
+      }
+    }
+  }
+
+  // 2. Look further away.
+  if (intent.near) {
+    for (const factor of [2, 3]) {
+      const near = { ...intent.near, radiusKm: intent.near.radiusKm * factor };
+      const attempt = { ...intent, near };
+      const found = await runIntentSearch(attempt, options);
+
+      if (found.length > 0) {
+        return {
+          intent: relaxedIntent(
+            attempt,
+            `Nothing matched close to ${intent.near.label}, so I widened the search area.`,
+          ),
+          results: found,
+        };
+      }
+    }
+  }
+
+  // 3. Forget the time.
+  if (intent.openAt || intent.openNow) {
+    const attempt = { ...intent, openAt: undefined, openNow: false };
+    const found = await runIntentSearch(attempt, options);
+
+    if (found.length > 0) {
+      return {
+        intent: relaxedIntent(
+          attempt,
+          "Nothing matched at that time, so I'm showing places regardless of opening hours.",
+        ),
+        results: found,
+      };
+    }
+  }
+
+  return { intent, results: [] };
+}
+
+/** One exact pass of the search for a given understanding of the request. */
+async function runIntentSearch(
+  intent: SearchIntent,
+  { category, openNow, now }: RunOptions,
+): Promise<Place[]> {
+  // A category picked with the filter buttons wins over what the text said.
+  const categories =
+    category !== "All"
+      ? [category]
+      : (intent.categories ?? (intent.category ? [intent.category] : []));
+
+  const terms = intent.terms ?? [];
+  const cuisines = intent.cuisines ?? [];
+  const features = intent.features ?? [];
+  const near = intent.near;
+
+  // A place matches when it has one of the cuisines OR a name that contains
+  // one of the words. Features then narrow it down: all of them are required.
+  const matchers = [
+    ...(cuisines.length > 0
+      ? [
+          { tags: { hasSome: cuisines } },
+          // places named after it but missing the tag ("Lunetta Pizza")
+          ...cuisines.map((cuisine) => ({
+            name: { contains: cuisine, mode: "insensitive" as const },
+          })),
+        ]
+      : []),
+    ...terms.flatMap((term) => [
+      { name: { contains: term, mode: "insensitive" as const } },
+      ...(intent.matchAddress
+        ? [{ address: { contains: term, mode: "insensitive" as const } }]
+        : []),
+    ]),
+  ];
+
+  const lngSpan = near
+    ? near.radiusKm / (111 * Math.cos((near.lat * Math.PI) / 180))
+    : 0;
 
   const where = {
-    ...baseWhere,
-    ...intentWhere,
-    ...(!intent.category && !intent.priceLevel
+    latitude: { not: null },
+    longitude: { not: null },
+    ...(categories.length > 0 ? { category: { in: categories } } : {}),
+    ...(matchers.length > 0 ? { OR: matchers } : {}),
+    ...(near || features.length > 0
       ? {
-          OR: [
-            ...queryTerms.flatMap((term) => [
-              { name: { contains: term, mode: "insensitive" as const } },
-              { category: { contains: term, mode: "insensitive" as const } },
-              { description: { contains: term, mode: "insensitive" as const } },
-              { address: { contains: term, mode: "insensitive" as const } },
-            ]),
-            ...(intent.tags.length > 0
-              ? [{ tags: { hasSome: intent.tags } }]
+          AND: [
+            ...(features.length > 0
+              ? [{ tags: { hasEvery: features } }]
+              : []),
+            ...(near
+              ? [
+                  {
+                    latitude: {
+                      gte: near.lat - near.radiusKm / 111,
+                      lte: near.lat + near.radiusKm / 111,
+                    },
+                  },
+                  {
+                    longitude: {
+                      gte: near.lng - lngSpan,
+                      lte: near.lng + lngSpan,
+                    },
+                  },
+                ]
               : []),
           ],
         }
@@ -240,17 +436,52 @@ export async function searchPlaces(
     orderBy: { createdAt: "desc" },
   });
 
-  const candidates = records.flatMap((record) => {
+  let results = records.flatMap((record) => {
     const place = toPlace(record);
     return place ? [place] : [];
   });
 
-  const ranked = rankPlaces(candidates, intent);
-  const visible = openNow
-    ? ranked.filter((place) => isOpenNow(place, now))
-    : ranked;
+  // The box above is a rough cut. Keep only places really inside the circle,
+  // and show how far they are.
+  if (near) {
+    results = results
+      .map((place) => ({
+        place,
+        km: haversineKm(near.lat, near.lng, place.latitude, place.longitude),
+      }))
+      .filter(({ km }) => km <= near.radiusKm)
+      .sort((a, b) => a.km - b.km)
+      .map(({ place, km }) => ({ ...place, distance: formatMiles(km) }));
+  }
 
-  return paginate(visible, intent, page, pageSize);
+  if (intent.openAt) {
+    const { day, minute } = intent.openAt;
+
+    results = results.filter(
+      (place) => isOpenAt(place.openingHours, day, minute) === true,
+    );
+  } else if (intent.openNow || openNow) {
+    results = results.filter((place) => isOpenNow(place, now));
+  }
+
+  // Without a location, put the best matches first (more of the words or
+  // cuisines, or the name starting with one), then complete listings.
+  if (!near && (terms.length > 0 || cuisines.length > 0)) {
+    const score = (place: Place) => {
+      const name = place.name.toLowerCase();
+
+      return (
+        terms.filter((term) => name.includes(term)).length * 10 +
+        cuisines.filter((cuisine) => place.tags.includes(cuisine)).length * 10 +
+        (terms.some((term) => name.startsWith(term)) ? 3 : 0) +
+        (place.openingHours ? 1 : 0)
+      );
+    };
+
+    results = [...results].sort((a, b) => score(b) - score(a));
+  }
+
+  return results;
 }
 
 /** Every category that really exists in the data, with its number of places. */
@@ -328,25 +559,191 @@ export async function getFeaturedPlaces(perCategory = 2): Promise<Place[]> {
  * category (like "coffee") are skipped, since categories have their own cards.
  */
 export async function getPopularSearchTerms(limit = 6): Promise<string[]> {
+  // Best source: the cuisine tags, already sorted by how many places have them.
+  const vocabulary = await getTagVocabulary();
+
+  const fromTags = vocabulary.cuisines
+    .map(formatTag)
+    // words the search turns into a whole category (coffee) are skipped
+    .filter((label) => !parseSearchIntent(label).category)
+    .slice(0, limit);
+
+  if (fromTags.length >= Math.min(limit, 4)) return fromTags;
+
+  // No tags yet: count food words in the place names instead.
   const records = await prisma.place.findMany({
     where: { latitude: { not: null }, longitude: { not: null } },
     select: { name: true },
   });
 
-  const terms = pickPopularTerms(
+  return pickPopularTerms(
     records.map((record) => record.name),
     { limit: limit + 4, minCount: 10 },
-  );
-
-  // A term is only a plain name search if it does not map to a category.
-  const checked = await Promise.all(
-    terms.map(async (term) => {
-      const intent = await extractSearchIntent(term.label);
-      return intent.category ? null : term.label;
-    }),
-  );
-
-  return checked
-    .filter((label): label is string => label !== null)
+  )
+    .map((term) => term.label)
+    .filter((label) => !parseSearchIntent(label).category)
     .slice(0, limit);
+}
+
+export type TagVocabulary = {
+  /** Cuisine tags, most places first */
+  cuisines: string[];
+  /** Feature tags that exist in the data, most places first */
+  features: string[];
+};
+
+// Tags that only repeat the category.
+const GENERIC_TAGS = new Set([
+  "cafe",
+  "restaurant",
+  "fast food",
+  "fast_food",
+  "park",
+  "museum",
+  "gallery",
+  "attraction",
+]);
+
+const MIN_PLACES_PER_TAG = 8;
+
+let tagCache: { key: string; vocabulary: TagVocabulary } | null = null;
+
+/**
+ * The cuisines and features that really exist in the tags column. The cache
+ * is renewed whenever places or tagged places change in number, so running
+ * the tag import is picked up without a restart.
+ */
+export async function getTagVocabulary(): Promise<TagVocabulary> {
+  const [total, tagged] = await Promise.all([
+    prisma.place.count({
+      where: { latitude: { not: null }, longitude: { not: null } },
+    }),
+    prisma.place.count({ where: { tags: { isEmpty: false } } }),
+  ]);
+
+  const key = `${total}:${tagged}`;
+
+  if (tagCache && tagCache.key === key) return tagCache.vocabulary;
+
+  const rows =
+    tagged > 0
+      ? await prisma.place.findMany({
+          where: { tags: { isEmpty: false } },
+          select: { tags: true },
+        })
+      : [];
+
+  const counts = new Map<string, number>();
+
+  for (const row of rows) {
+    for (const tag of row.tags) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+
+  const ranked = [...counts]
+    .filter(([tag, count]) => count >= MIN_PLACES_PER_TAG && !GENERIC_TAGS.has(tag))
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+  const vocabulary: TagVocabulary = {
+    cuisines: ranked
+      // "coffee" and similar words are categories, not cuisines
+      .filter(([tag]) => !isFeatureTag(tag) && !parseSearchIntent(tag).category)
+      .slice(0, 80)
+      .map(([tag]) => tag),
+    features: ranked
+      .filter(([tag]) => FEATURE_TAGS.some((feature) => feature === tag))
+      .map(([tag]) => tag),
+  };
+
+  tagCache = { key, vocabulary };
+
+  return vocabulary;
+}
+
+// The neighborhood list never changes while the server runs, but the data
+// can, so the counts are recomputed only when the number of places changes.
+let coverageCache: { total: number; areas: Area[] } | null = null;
+
+const MIN_PLACES_PER_AREA = 25;
+
+/**
+ * Neighborhoods that really have places in the database, most places first.
+ * This is what the AI is allowed to use, so it never sends anyone to an empty
+ * part of the map.
+ */
+export async function getCoveredAreas(): Promise<Area[]> {
+  const total = await prisma.place.count({
+    where: { latitude: { not: null }, longitude: { not: null } },
+  });
+
+  if (coverageCache && coverageCache.total === total) {
+    return coverageCache.areas;
+  }
+
+  const points = await prisma.place.findMany({
+    where: { latitude: { not: null }, longitude: { not: null } },
+    select: { latitude: true, longitude: true },
+  });
+
+  const areas = AREAS.map((area) => ({
+    area,
+    count: points.filter(
+      (point) =>
+        point.latitude !== null &&
+        point.longitude !== null &&
+        haversineKm(area.lat, area.lng, point.latitude, point.longitude) <=
+          area.radiusKm,
+    ).length,
+  }))
+    .filter(({ count }) => count >= MIN_PLACES_PER_AREA)
+    .sort((a, b) => b.count - a.count)
+    .map(({ area }) => area);
+
+  coverageCache = { total, areas };
+
+  return areas;
+}
+
+/**
+ * Example searches written the way a person would say them, built from the
+ * data: real food words and neighborhoods that have many places.
+ */
+export async function getSearchSuggestions(count = 4): Promise<string[]> {
+  const [terms, areas, categories, vocabulary] = await Promise.all([
+    getPopularSearchTerms(6),
+    getCoveredAreas(),
+    getCategoryCounts(),
+    getTagVocabulary(),
+  ]);
+
+  const food = terms.map((term) => term.toLowerCase());
+  const area = (index: number) => areas[index]?.key;
+  const hasFeature = (feature: string) => vocabulary.features.includes(feature);
+
+  const label = (name?: string) => {
+    const category =
+      categories.find((item) => item.name === name) ?? categories[0];
+
+    return category ? getCategoryLabel(category.name).toLowerCase() : undefined;
+  };
+
+  const suggestions = [
+    food[0] && area(1) ? `${food[0]} near ${area(1)}` : undefined,
+    hasFeature("wifi") && label("Cafe")
+      ? `${label("Cafe")} with wifi, open now`
+      : undefined,
+    food[1] && hasFeature("outdoor seating")
+      ? `${food[1]} with outdoor seating`
+      : food[1]
+        ? `${food[1]} that's open late`
+        : undefined,
+    hasFeature("vegan") && food[2] ? `vegan ${food[2]}` : undefined,
+    food[3] && area(2) ? `${food[3]} in ${area(2)}` : undefined,
+    label() && area(0) ? `${label()} open now near ${area(0)}` : undefined,
+  ];
+
+  return suggestions
+    .filter((item): item is string => Boolean(item))
+    .slice(0, count);
 }

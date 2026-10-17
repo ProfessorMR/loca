@@ -2,48 +2,103 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useMemo,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
+
+import {
+  FAVORITES_KEY,
+  parseFavorites,
+  toggleFavoriteId,
+} from "@/lib/favorites-store";
 
 type FavoritesContextValue = {
   favoritePlaceIds: string[];
   isFavorite: (placeId: string) => boolean;
   toggleFavorite: (placeId: string) => void;
+  /** False until the saved list has been read from this browser */
+  isReady: boolean;
 };
 
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 
-type FavoritesProviderProps = {
-  children: ReactNode;
-};
+const CHANGE_EVENT = "loca:favorites-changed";
 
-export function FavoritesProvider({ children }: FavoritesProviderProps) {
-  const [favoritePlaceIds, setFavoritePlaceIds] = useState<string[]>([]);
+// Only used when the browser blocks localStorage (private mode): the list then
+// lasts until the tab is closed instead of failing.
+let memory: string | null = null;
 
-  function isFavorite(placeId: string) {
-    return favoritePlaceIds.includes(placeId);
+function readRaw(): string {
+  if (memory !== null) return memory;
+
+  try {
+    return window.localStorage.getItem(FAVORITES_KEY) ?? "[]";
+  } catch {
+    return "[]";
+  }
+}
+
+function writeRaw(raw: string) {
+  memory = raw;
+
+  try {
+    window.localStorage.setItem(FAVORITES_KEY, raw);
+  } catch {
+    // storage is blocked or full: keep the list in memory for this visit
   }
 
-  function toggleFavorite(placeId: string) {
-    setFavoritePlaceIds((current) => {
-      if (current.includes(placeId)) {
-        return current.filter((id) => id !== placeId);
-      }
+  window.dispatchEvent(new Event(CHANGE_EVENT));
+}
 
-      return [...current, placeId];
-    });
-  }
+function subscribe(onChange: () => void) {
+  // Another tab changed the list.
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === null || event.key === FAVORITES_KEY) {
+      memory = null;
+      onChange();
+    }
+  };
+
+  window.addEventListener("storage", onStorage);
+  window.addEventListener(CHANGE_EVENT, onChange);
+
+  return () => {
+    window.removeEventListener("storage", onStorage);
+    window.removeEventListener(CHANGE_EVENT, onChange);
+  };
+}
+
+const getServerSnapshot = () => "[]";
+
+const subscribeNothing = () => () => {};
+
+export function FavoritesProvider({ children }: { children: ReactNode }) {
+  const raw = useSyncExternalStore(subscribe, readRaw, getServerSnapshot);
+  const isReady = useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false,
+  );
+
+  const favoritePlaceIds = useMemo(() => parseFavorites(raw), [raw]);
+
+  const isFavorite = useCallback(
+    (placeId: string) => favoritePlaceIds.includes(placeId),
+    [favoritePlaceIds],
+  );
+
+  const toggleFavorite = useCallback((placeId: string) => {
+    const current = parseFavorites(readRaw());
+
+    writeRaw(JSON.stringify(toggleFavoriteId(current, placeId)));
+  }, []);
 
   const value = useMemo(
-    () => ({
-      favoritePlaceIds,
-      isFavorite,
-      toggleFavorite,
-    }),
-    [favoritePlaceIds],
+    () => ({ favoritePlaceIds, isFavorite, toggleFavorite, isReady }),
+    [favoritePlaceIds, isFavorite, toggleFavorite, isReady],
   );
 
   return (

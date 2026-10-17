@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
-import { ArrowLeft, MapPin, Navigation, Star } from "lucide-react";
-import { Navbar } from "@/components/shared/navbar";
+import { ArrowLeft, MapPin, Star } from "lucide-react";
 import { PlaceImage } from "@/components/shared/place-image";
 import { PlaceLocationMap } from "@/components/shared/place-location-map";
 import { SavePlaceButton } from "@/components/shared/save-place-button";
@@ -18,29 +18,7 @@ export default async function PlacePage({ params }: PlacePageProps) {
   const { id } = await params;
   const place = await getPlaceById(id);
 
-  if (!place) {
-    return (
-      <main className="min-h-screen">
-        <Navbar />
-        <div className="mx-auto max-w-6xl px-6 py-10">
-          <Link
-            href="/explore"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            Back
-          </Link>
-
-          <div className="mt-10 rounded-3xl border p-8 text-center">
-            <h1 className="text-2xl font-semibold">Place not found</h1>
-            <p className="mt-2 text-muted-foreground">
-              We couldn&apos;t find the place you&apos;re looking for.
-            </p>
-          </div>
-        </div>
-      </main>
-    );
-  }
+  if (!place) notFound();
 
   const metaItems = [place.priceLevel, place.distance, place.address].filter(
     (item): item is string => Boolean(item),

@@ -40,10 +40,13 @@ export function Map({ places, selectedPlaceId, onPlaceHover }: MapProps) {
     selectedPlaceId,
   });
 
-  callbacks.current = {
-    onPlaceHover,
-    selectedPlaceId,
-  };
+  // Keep the latest values for the marker handlers, after each render.
+  useEffect(() => {
+    callbacks.current = {
+      onPlaceHover,
+      selectedPlaceId,
+    };
+  });
 
   useEffect(() => {
     if (!mapContainer.current || map.current) {

@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { ArrowUpRight, Bookmark } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 const navigation = [
   { label: "Explore", href: "/explore" },
   { label: "Saved", href: "/saved" },
-  { label: "Collections", href: "/collections" },
 ];
 
 export function Navbar() {
@@ -38,13 +37,6 @@ export function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
-          >
-            Log in
-          </Link>
-
           <Link
             href="/explore"
             className="group inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-transform hover:scale-[1.02]"
