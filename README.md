@@ -4,8 +4,6 @@
 
 <!--  -->
 
-
-
 **Find the right place by describing it, in your own words.**
 
 Type _"late-night pizza with outdoor seating near Union Square"_ (in English, Persian or any language) and LOCA turns it into real filters over real data: cuisine, features, opening hours and distance.
@@ -19,15 +17,10 @@ Type _"late-night pizza with outdoor seating near Union Square"_ (in English, Pe
   <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
 </p>
 
-<!--
-  BEFORE YOU PUBLISH, uncomment and fill in:
-
   <p>
-    <a href="https://YOUR-LIVE-DEMO-URL"><b>Live demo</b></a> ·
-    
+    <a href="https://loca-flame.vercel.app/"><b>Live demo</b></a> ·
   </p>
 
--->
 <img src="./public/loca.png" alt="LOCA screenshot" width="820" />
 
 </div>
@@ -228,3 +221,13 @@ Project link: [github.com/ProfessorMR/loca](https://github.com/ProfessorMR/loca)
 - Place data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under the [Open Database License](https://opendatacommons.org/licenses/odbl/). The credit is shown in the app's footer and must stay there.
 - Map tiles by [OpenFreeMap](https://openfreemap.org/), rendered with [MapLibre GL](https://maplibre.org/).
 - UI components from [shadcn/ui](https://ui.shadcn.com/), icons from [Lucide](https://lucide.dev/).
+
+## 💖 Support
+
+If LOCA helped you, or you simply like it, you can support its development. Every bit helps me keep improving it, and it is truly appreciated.
+
+<a href="https://reymit.ir/professor_mr">
+  <img alt="Support me" src="https://img.shields.io/badge/Support%20me-%E2%9D%A4-ff69b4?style=for-the-badge" />
+</a>
+
+Starring the repo ⭐ and sharing it with a friend helps just as much.
