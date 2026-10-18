@@ -2,9 +2,13 @@
 
 # 📍 LOCA
 
+<!--  -->
+
+
+
 **Find the right place by describing it, in your own words.**
 
-Type *"late-night pizza with outdoor seating near Union Square"* (in English, Persian or any language) and LOCA turns it into real filters over real data: cuisine, features, opening hours and distance.
+Type _"late-night pizza with outdoor seating near Union Square"_ (in English, Persian or any language) and LOCA turns it into real filters over real data: cuisine, features, opening hours and distance.
 
 <p>
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" />
@@ -20,13 +24,11 @@ Type *"late-night pizza with outdoor seating near Union Square"* (in English, Pe
 
   <p>
     <a href="https://YOUR-LIVE-DEMO-URL"><b>Live demo</b></a> ·
-    <a href="https://github.com/ProfessorMR/loca/issues">Report a bug</a> ·
-    <a href="https://github.com/ProfessorMR/loca/issues">Request a feature</a>
+    
   </p>
 
-  A screenshot or a short GIF of a search is the best thing you can put here:
-  <img src="docs/screenshot.png" alt="LOCA screenshot" width="820" />
 -->
+<img src="./public/loca.png" alt="LOCA screenshot" width="820" />
 
 </div>
 
@@ -36,9 +38,9 @@ Type *"late-night pizza with outdoor seating near Union Square"* (in English, Pe
 
 Most place-finding apps make you pick filters. **LOCA lets you just say what you want.**
 
-An AI reads your request, but it is only allowed to use what the data can really answer. Everything it returns is checked against the database before a single query runs, so it can't invent a neighborhood, a cuisine or a feature that does not exist. Where the data has no answer (is it *quiet*? is it *cheap*?), LOCA says so instead of guessing.
+An AI reads your request, but it is only allowed to use what the data can really answer. Everything it returns is checked against the database before a single query runs, so it can't invent a neighborhood, a cuisine or a feature that does not exist. Where the data has no answer (is it _quiet_? is it _cheap_?), LOCA says so instead of guessing.
 
-The places come from [OpenStreetMap](https://www.openstreetmap.org/): about 8,500 restaurants, cafes and fast-food spots in Manhattan and right next to it.
+The places come from [OpenStreetMap](https://www.openstreetmap.org/): about 7,808 restaurants, cafes and fast-food spots in Manhattan and right next to it.
 
 ## 🚀 Features
 
@@ -76,13 +78,13 @@ flowchart LR
 
 A few examples:
 
-| You type | LOCA applies |
-| --- | --- |
-| `italian with outdoor seating near union square` | cuisine **italian** + feature **outdoor seating** + within ~0.4 mi of **Union Square**, nearest first |
-| `cafes with wifi, open now` | category **Cafe** + feature **wifi** + **open right now** |
-| `late night pizza near union square` | cuisine **pizza** + **open at 11 PM** + near Union Square |
-| `یه کافه با وایفای که الان بازه` | the same as above, written in Persian, answered in Persian |
-| `vegan pizza with outdoor seating near union square` | nothing lists all of it, so it keeps *outdoor seating* and says it left out *vegan* |
+| You type                                             | LOCA applies                                                                                          |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `italian with outdoor seating near union square`     | cuisine **italian** + feature **outdoor seating** + within ~0.4 mi of **Union Square**, nearest first |
+| `cafes with wifi, open now`                          | category **Cafe** + feature **wifi** + **open right now**                                             |
+| `late night pizza near union square`                 | cuisine **pizza** + **open at 11 PM** + near Union Square                                             |
+| `یه کافه با وایفای که الان بازه`                     | the same as above, written in Persian, answered in Persian                                            |
+| `vegan pizza with outdoor seating near union square` | nothing lists all of it, so it keeps _outdoor seating_ and says it left out _vegan_                   |
 
 ## 🧰 Built with
 
@@ -100,7 +102,7 @@ A few examples:
 
 - [Node.js](https://nodejs.org/) 20 or newer (includes `npm`)
 - A PostgreSQL database. A free [Supabase](https://supabase.com/) project works well.
-- *(Optional)* An API key for an OpenAI-compatible model, to turn on AI search. Without it, search uses the built-in rules.
+- _(Optional)_ An API key for an OpenAI-compatible model, to turn on AI search. Without it, search uses the built-in rules.
 
 ### Installation
 
@@ -120,7 +122,7 @@ A few examples:
 3. **Set your environment variables**
 
    ```bash
-   cp .env.example .env
+   cp .env.local .env
    ```
 
    Then open `.env` and fill it in (see the [table below](#-environment-variables)).
@@ -132,7 +134,7 @@ A few examples:
    npx prisma migrate deploy
    ```
 
-5. **Load the places.** Import `new-york-places.csv` into the `Place` table (for example with Supabase's *Table Editor → Import data*). Then fill in the cuisine and feature tags from the GeoJSON that is in the repo:
+5. **Load the places.** Import `new-york-places.csv` into the `Place` table (for example with Supabase's _Table Editor → Import data_). Then fill in the cuisine and feature tags from the GeoJSON that is in the repo:
 
    ```bash
    npx tsx scripts/enrich-tags.ts --dry-run   # shows what it would do, changes nothing
@@ -154,14 +156,13 @@ A few examples:
 
 ### 🔑 Environment variables
 
-| Variable | Required | What it is |
-| --- | :---: | --- |
-| `DATABASE_URL` | ✅ | Pooled Postgres connection string, used by the app |
-| `DIRECT_URL` | ✅ | Direct Postgres connection string, used by Prisma migrations |
-| `XAI_API_KEY` | | API key of your AI provider |
-| `XAI_BASE_URL` | | Base URL of an OpenAI-compatible API |
-| `XAI_MODEL` | | Model name. It must support JSON mode |
-| `AI_DAILY_LIMIT` | | Most new AI searches the whole site may run per day (default `1000`) |
+| Variable       | Required | What it is                                                   |
+| -------------- | :------: | ------------------------------------------------------------ |
+| `DATABASE_URL` |    ✅    | Pooled Postgres connection string, used by the app           |
+| `DIRECT_URL`   |    ✅    | Direct Postgres connection string, used by Prisma migrations |
+| `XAI_API_KEY`  |          | API key of your AI provider                                  |
+| `XAI_BASE_URL` |          | Base URL of an OpenAI-compatible API                         |
+| `XAI_MODEL`    |          | Model name. It must support JSON mode                        |
 
 The three `XAI_*` variables turn AI search on. Leave them empty and LOCA still works, with simpler rules.
 
@@ -187,12 +188,12 @@ scripts/                Data scripts (see below)
 
 <br />
 
-| Script | What it does |
-| --- | --- |
-| `scripts/enrich-tags.ts` | Fills `Place.tags` (cuisine, outdoor seating, wifi, vegan...) from `new-york-places.geojson`. Run it after importing the places. |
-| `scripts/convert-osm-places.mjs` | Converts the OpenStreetMap GeoJSON into the CSV used for the import. |
-| `scripts/enrich-images.ts` | *Experimental.* Looks up photos on Wikimedia Commons by name. Matches can be wrong, so review the results. |
-| `scripts/import-osm-places.ts` | An older importer that reads straight from Overpass. Its bounding box is set for Tehran, so change it before using it. |
+| Script                           | What it does                                                                                                                     |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `scripts/enrich-tags.ts`         | Fills `Place.tags` (cuisine, outdoor seating, wifi, vegan...) from `new-york-places.geojson`. Run it after importing the places. |
+| `scripts/convert-osm-places.mjs` | Converts the OpenStreetMap GeoJSON into the CSV used for the import.                                                             |
+| `scripts/enrich-images.ts`       | _Experimental._ Looks up photos on Wikimedia Commons by name. Matches can be wrong, so review the results.                       |
+| `scripts/import-osm-places.ts`   | An older importer that reads straight from Overpass. Its bounding box is set for Tehran, so change it before using it.           |
 
 Run any of them with `npx tsx scripts/<name>.ts`.
 
@@ -206,17 +207,6 @@ Run any of them with `npx tsx scripts/<name>.ts`.
 - **Saved places are local to your browser.** There are no accounts yet.
 - **AI usage limits are kept in memory.** On a host that runs several copies of the server, each copy counts on its own. Great for an MVP; use a shared store such as Redis when traffic grows.
 
-## 🗺️ Roadmap
-
-- [ ] Accounts, so saved places follow you across devices
-- [ ] Photos for places
-- [ ] More cities
-- [ ] A shared rate limiter (Redis)
-- [ ] Automated tests for search
-- [ ] Interface in more languages
-
-Have an idea? [Open an issue](https://github.com/ProfessorMR/loca/issues).
-
 ## 🤝 Contributing
 
 Contributions are welcome:
@@ -227,13 +217,9 @@ Contributions are welcome:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
-
-Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
-
 ## 📬 Contact
 
-**Mohammad Ramaji**: [@mohammad._.rmj](https://instagram.com/mohammad._.rmj)
+**Mohammad Ramaji**: [@mohammad.\_.rmj](https://instagram.com/mohammad._.rmj)
 
 Project link: [github.com/ProfessorMR/loca](https://github.com/ProfessorMR/loca)
 
