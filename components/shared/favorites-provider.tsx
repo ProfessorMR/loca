@@ -23,7 +23,9 @@ type FavoritesContextValue = {
   isReady: boolean;
 };
 
-const FavoritesContext = createContext<FavoritesContextValue | null>(null);
+type StoredFavorites = Omit<FavoritesContextValue, "isReady">;
+
+const FavoritesContext = createContext<StoredFavorites | null>(null);
 
 const CHANGE_EVENT = "loca:favorites-changed";
 
@@ -77,11 +79,6 @@ const subscribeNothing = () => () => {};
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const raw = useSyncExternalStore(subscribe, readRaw, getServerSnapshot);
-  const isReady = useSyncExternalStore(
-    subscribeNothing,
-    () => true,
-    () => false,
-  );
 
   const favoritePlaceIds = useMemo(() => parseFavorites(raw), [raw]);
 
@@ -97,8 +94,8 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ favoritePlaceIds, isFavorite, toggleFavorite, isReady }),
-    [favoritePlaceIds, isFavorite, toggleFavorite, isReady],
+    () => ({ favoritePlaceIds, isFavorite, toggleFavorite }),
+    [favoritePlaceIds, isFavorite, toggleFavorite],
   );
 
   return (
@@ -108,12 +105,40 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useFavorites() {
+/**
+ * The saved places of this visitor.
+ *
+ * Every component that calls this shows "nothing saved" while IT is being
+ * hydrated, and the real list right after. That matters because the cards sit
+ * inside a Suspense boundary that is streamed in and hydrated later than the
+ * provider: if they read the real list straight away, the server HTML ("not
+ * saved") would not match the first browser render ("saved") and React would
+ * report a hydration mismatch.
+ */
+export function useFavorites(): FavoritesContextValue {
   const context = useContext(FavoritesContext);
 
   if (!context) {
     throw new Error("useFavorites must be used within FavoritesProvider");
   }
 
-  return context;
+  // false while this component is hydrating, true from then on
+  const isReady = useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false,
+  );
+
+  return useMemo(
+    () =>
+      isReady
+        ? { ...context, isReady: true }
+        : {
+            favoritePlaceIds: [],
+            isFavorite: () => false,
+            toggleFavorite: context.toggleFavorite,
+            isReady: false,
+          },
+    [context, isReady],
+  );
 }
