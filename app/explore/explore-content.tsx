@@ -1,6 +1,4 @@
 import { connection } from "next/server";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 
 import { ExploreResults } from "@/components/shared/explore-results";
 import { headers } from "next/headers";
@@ -9,9 +7,9 @@ import {
   ExploreNavigationProvider,
   PendingFade,
 } from "@/components/shared/explore-navigation";
+import { Navbar } from "@/components/shared/navbar";
 import { SearchBar } from "@/components/shared/search-bar";
 import { SearchUnderstanding } from "@/components/shared/search-understanding";
-import { describeCategories } from "@/lib/category-labels";
 import {
   getCategoryCounts,
   getSearchSuggestions,
@@ -59,51 +57,26 @@ export async function ExploreContent({ searchParams }: ExploreContentProps) {
     getSearchSuggestions(5),
   ]);
 
-  const placeCount = categories.reduce((sum, item) => sum + item.count, 0);
-
   const { places, intent, totalCount, totalPages } = searchResult;
 
   return (
     <main className="min-h-screen">
+      <Navbar />
+
       <ExploreNavigationProvider>
-        <div className="mx-auto max-w-7xl px-6 py-10">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-            Back
-          </Link>
+        <div className="mx-auto max-w-7xl px-5 pt-6 sm:px-6">
+          <SearchBar
+            key={query}
+            initialQuery={query}
+            placeholder={
+              suggestions[0] ? `Try “${suggestions[0]}”` : "Describe the place you want"
+            }
+          />
 
-          <PendingFade className="mt-12">
-            <p className="text-sm font-medium text-emerald-600">Explore</p>
-
-            <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
-              {query ? `Results for "${query}"` : "Find your next place."}
-            </h1>
-
-            <p className="mt-4 max-w-xl text-muted-foreground">
-              {query
-                ? `${totalCount} ${totalCount === 1 ? "place" : "places"} found`
-                : `Browse ${placeCount.toLocaleString("en-US")} places across ${describeCategories(
-                    categories.map((item) => item.name),
-                  )}, or describe what you're after.`}
-            </p>
-          </PendingFade>
-
-          <div className="my-10">
-            <SearchBar
-              key={query}
-              initialQuery={query}
-              placeholder={
-                suggestions[0] ? `Try “${suggestions[0]}”` : undefined
-              }
-            />
-            {!query && <SearchSuggestions suggestions={suggestions} />}
-          </div>
+          {!query && <SearchSuggestions suggestions={suggestions} />}
 
           {query && intent && (
-            <PendingFade>
+            <PendingFade className="mt-4">
               <SearchUnderstanding intent={intent} />
             </PendingFade>
           )}

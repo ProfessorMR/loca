@@ -10,6 +10,8 @@ export type Place = {
   description: string | null;
   address: string | null;
   openingHours?: string | null;
+  phone?: string | null;
+  website?: string | null;
   latitude: number;
   longitude: number;
 };

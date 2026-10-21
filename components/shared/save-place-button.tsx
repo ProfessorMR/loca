@@ -18,15 +18,15 @@ export function SavePlaceButton({ placeId }: SavePlaceButtonProps) {
       type="button"
       onClick={() => toggleFavorite(placeId)}
       aria-pressed={saved}
-      className={`inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-colors ${
+      className={`inline-flex h-11 items-center gap-2 rounded-full border px-5 text-sm font-semibold transition-colors ${
         saved
           ? "border-foreground bg-foreground text-background"
-          : "border-border bg-background hover:border-foreground/30"
+          : "bg-card hover:border-foreground"
       }`}
     >
       <Bookmark className={`size-4 ${saved ? "fill-current" : ""}`} />
 
-      {saved ? "Saved" : "Save place"}
+      {saved ? "Saved" : "Save"}
     </button>
   );
 }

@@ -1,4 +1,6 @@
+import { CityMapCard } from "@/components/shared/city-map-card";
 import { Hero } from "@/components/shared/hero";
+import { HeroLayout } from "@/components/shared/hero-layout";
 import { isAiConfigured } from "@/lib/ai-intent-extractor";
 import { describeCategories } from "@/lib/category-labels";
 import { getCategoryCounts, getSearchSuggestions } from "@/lib/places";
@@ -12,7 +14,7 @@ export async function HeroSection() {
 
   const total = categories.reduce((sum, category) => sum + category.count, 0);
   const lead = isAiConfigured()
-    ? "Describe what you're after in your own words"
+    ? "Say what you're after in your own words"
     : "Tell us what you're looking for";
 
   const subtitle =
@@ -23,10 +25,15 @@ export async function HeroSection() {
       : undefined;
 
   return (
-    <Hero
-      popularSearches={suggestions}
-      subtitle={subtitle}
-      placeholder={suggestions[0] ? `Try “${suggestions[0]}”` : undefined}
+    <HeroLayout
+      left={
+        <Hero
+          popularSearches={suggestions}
+          subtitle={subtitle}
+          placeholder={suggestions[0] ? `Try “${suggestions[0]}”` : undefined}
+        />
+      }
+      right={<CityMapCard />}
     />
   );
 }

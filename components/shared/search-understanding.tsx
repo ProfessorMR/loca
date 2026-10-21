@@ -64,7 +64,7 @@ export function SearchUnderstanding({ intent }: { intent: SearchIntent }) {
   }
 
   return (
-    <div className="mb-8 rounded-2xl border bg-muted/30 p-4 sm:p-5">
+    <div className="rounded-2xl border bg-card p-4 sm:p-5">
       {intent.notice && (
         <p className="mb-3 text-sm leading-6 text-muted-foreground">
           {intent.notice}
@@ -72,18 +72,17 @@ export function SearchUnderstanding({ intent }: { intent: SearchIntent }) {
       )}
 
       {intent.relaxed && (
-        <p className="mb-3 rounded-xl bg-amber-500/10 px-3 py-2 text-sm leading-6 text-amber-800 dark:text-amber-300">
+        <p className="mb-3 rounded-xl bg-signal/30 px-3 py-2 text-sm leading-6">
           No exact match. {intent.relaxed}
         </p>
       )}
 
       {intent.summary && (
-        <p className="flex items-start gap-2.5 text-sm leading-6" dir="auto">
+        <p className="flex items-start gap-3 text-base font-medium leading-7" dir="auto">
           {isAi && (
-            <Sparkles
-              className="mt-0.5 size-4 shrink-0 text-emerald-600"
-              aria-hidden="true"
-            />
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-signal text-signal-foreground">
+              <Sparkles className="size-3.5" aria-hidden="true" />
+            </span>
           )}
 
           <span>{intent.summary}</span>
@@ -96,14 +95,14 @@ export function SearchUnderstanding({ intent }: { intent: SearchIntent }) {
             intent.summary ? "mt-3" : ""
           }`}
         >
-          <span className="mr-1 text-xs text-muted-foreground">
+          <span className="mr-1 text-sm text-muted-foreground">
             {isAi ? "Applied:" : "Understood as:"}
           </span>
 
           {chips.map((chip) => (
             <span
               key={chip}
-              className="rounded-full border bg-background px-3 py-1 text-xs font-medium"
+              className="rounded-full bg-secondary px-3 py-1 text-sm font-medium"
             >
               {chip}
             </span>
@@ -120,7 +119,7 @@ export function SearchUnderstanding({ intent }: { intent: SearchIntent }) {
 
       {unsupported.length > 0 && (
         <p
-          className="mt-3 text-xs leading-5 text-muted-foreground"
+          className="mt-1 text-xs leading-5 text-muted-foreground"
           dir="auto"
         >
           Can&apos;t filter by {unsupported.join(", ")}, because there is no

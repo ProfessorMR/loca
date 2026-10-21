@@ -1,8 +1,7 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-
 import { getOpenStatus } from "@/lib/opening-hours";
+import { useMinute } from "@/lib/use-minute";
 import { cn } from "@/lib/utils";
 
 type OpenStatusProps = {
@@ -10,31 +9,20 @@ type OpenStatusProps = {
   className?: string;
 };
 
-function subscribe(onChange: () => void) {
-  const id = setInterval(onChange, 60_000);
-  return () => clearInterval(id);
-}
-
-// Current time rounded to the minute. The server snapshot is null, so the
-// server and the first client render both show nothing (no hydration mismatch)
-// and the real status appears right after mount.
-const getSnapshot = () => Math.floor(Date.now() / 60_000);
-const getServerSnapshot = () => null;
-
 const dotColors = {
-  open: "bg-emerald-500",
-  "closing-soon": "bg-amber-500",
-  closed: "bg-red-500/80",
+  open: "bg-open",
+  "closing-soon": "bg-soon",
+  closed: "bg-closed",
 } as const;
 
 const headlineColors = {
-  open: "text-emerald-700 dark:text-emerald-400",
-  "closing-soon": "text-amber-700 dark:text-amber-400",
-  closed: "text-muted-foreground",
+  open: "text-open",
+  "closing-soon": "text-soon",
+  closed: "text-foreground",
 } as const;
 
 export function OpenStatus({ openingHours, className }: OpenStatusProps) {
-  const minute = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const minute = useMinute();
 
   if (!openingHours) return null;
 

@@ -1,12 +1,10 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { SearchBar } from "@/components/shared/search-bar";
 
 type HeroProps = {
   /**
-   * Quick-search words. `undefined` means "still loading" (space is reserved),
+   * Example searches. `undefined` means "still loading" (space is reserved),
    * an empty array means there is nothing to show.
    */
   popularSearches?: string[];
@@ -15,62 +13,56 @@ type HeroProps = {
 };
 
 const defaultSubtitle =
-  "Describe what you're after in your own words and discover places that match.";
+  "Say what you're after in your own words and discover places that match.";
 
 export function Hero({
   popularSearches,
   subtitle = defaultSubtitle,
   placeholder,
 }: HeroProps) {
-  const router = useRouter();
-
   return (
-    <section className="relative overflow-hidden">
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-7xl items-center px-6 py-20">
-        <div className="w-full max-w-4xl">
-          <p className="mb-6 text-sm font-medium tracking-wide text-emerald-600">
-            DISCOVER DIFFERENTLY
-          </p>
+    <div>
+      <h1 className="display text-[2.75rem] sm:text-6xl xl:text-7xl">
+        Describe
+        <br />
+        the place.
+        <br />
+        <span className="relative isolate inline-block whitespace-nowrap">
+          <span
+            aria-hidden="true"
+            className="absolute inset-x-[-0.08em] bottom-[0.06em] -z-10 h-[0.36em] bg-signal"
+          />
+          We&apos;ll find it.
+        </span>
+      </h1>
 
-          <h1 className="max-w-4xl text-5xl font-semibold leading-[1.05] tracking-[-0.04em] sm:text-6xl md:text-7xl lg:text-8xl">
-            Find places
-            <br />
-            you&apos;ll love.
-          </h1>
+      <p className="mt-6 max-w-md text-lg leading-7 text-muted-foreground">
+        {subtitle}
+      </p>
 
-          <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-            {subtitle}
-          </p>
+      <div className="mt-8 max-w-xl">
+        <SearchBar placeholder={placeholder} />
 
-          {/* Search */}
-          <div className="mt-10 max-w-2xl">
-            <SearchBar placeholder={placeholder} />
+        {popularSearches === undefined && (
+          <div aria-hidden="true" className="mt-5 h-16" />
+        )}
 
-            {popularSearches === undefined && (
-              <div aria-hidden="true" className="mt-5 h-8" />
-            )}
+        {popularSearches && popularSearches.length > 0 && (
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-sm text-muted-foreground">Try</span>
 
-            {popularSearches && popularSearches.length > 0 && (
-              <div className="mt-5 flex flex-wrap items-center gap-2">
-                <span className="mr-1 text-xs text-muted-foreground">Try:</span>
-
-                {popularSearches.map((search) => (
-                  <button
-                    key={search}
-                    type="button"
-                    onClick={() =>
-                      router.push(`/explore?q=${encodeURIComponent(search)}`)
-                    }
-                    className="rounded-full border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
-                  >
-                    {search}
-                  </button>
-                ))}
-              </div>
-            )}
+            {popularSearches.map((search) => (
+              <Link
+                key={search}
+                href={`/explore?q=${encodeURIComponent(search)}`}
+                className="rounded-full border bg-card px-3.5 py-1.5 text-sm transition-colors hover:border-foreground hover:bg-foreground hover:text-background"
+              >
+                {search}
+              </Link>
+            ))}
           </div>
-        </div>
+        )}
       </div>
-    </section>
+    </div>
   );
 }

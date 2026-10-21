@@ -15,7 +15,7 @@
   height: 26px;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.92);
-  color: #171717;
+  color: #13203a;
   font-size: 18px;
   line-height: 26px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
@@ -33,7 +33,7 @@
   width: 250px;
   overflow: hidden;
   background: white;
-  color: #171717;
+  color: #13203a;
 }
 
 .loca-popup__image {
@@ -59,7 +59,7 @@
   gap: 6px;
   margin: 0;
   padding-right: 24px; /* keeps clear of the close button */
-  color: #737373;
+  color: #556178;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -104,11 +104,11 @@
 }
 
 .loca-popup__status span:last-child {
-  color: #525252;
+  color: #3d4a63;
 }
 
 .loca-popup__status strong {
-  color: #171717;
+  color: #13203a;
 }
 
 .loca-popup__dot {
@@ -119,20 +119,20 @@
 }
 
 .loca-popup__dot--open {
-  background: #10b981;
+  background: #12875a;
 }
 
 .loca-popup__dot--closing-soon {
-  background: #f59e0b;
+  background: #b7791f;
 }
 
 .loca-popup__dot--closed {
-  background: #ef4444;
+  background: #b4412f;
 }
 
 .loca-popup__details {
   margin: 4px 0 0;
-  color: #737373;
+  color: #556178;
   font-size: 12px;
   line-height: 1.5;
 }
@@ -145,7 +145,7 @@
   margin-top: 14px;
   padding: 9px 12px;
   border-radius: 10px;
-  background: #18181b;
+  background: #13203a;
   color: white;
   font-size: 12px;
   font-weight: 600;

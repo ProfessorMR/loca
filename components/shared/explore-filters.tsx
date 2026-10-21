@@ -1,5 +1,7 @@
 "use client";
 
+import { getCategoryColor } from "@/lib/category-colors";
+import { getCategoryLabel } from "@/lib/category-labels";
 import type { CategoryCount } from "@/types/place";
 
 type ExploreFiltersProps = {
@@ -10,10 +12,9 @@ type ExploreFiltersProps = {
   onOpenNowChange: (openNow: boolean) => void;
 };
 
-const pillBase =
-  "shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors";
-const pillIdle =
-  "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground";
+const pill =
+  "inline-flex h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors";
+const idle = "bg-card text-foreground hover:border-foreground";
 
 export function ExploreFilters({
   categories,
@@ -31,7 +32,11 @@ export function ExploreFilters({
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-      <div className="flex min-w-0 gap-2 overflow-x-auto pb-1">
+      <div
+        role="group"
+        aria-label="Category"
+        className="-mx-5 flex min-w-0 gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0"
+      >
         {options.map(({ name, count }) => {
           const isSelected = selectedCategory === name;
 
@@ -41,15 +46,27 @@ export function ExploreFilters({
               type="button"
               onClick={() => onCategoryChange(name)}
               aria-pressed={isSelected}
-              className={`${pillBase} ${
+              className={`${pill} ${
                 isSelected
                   ? "border-foreground bg-foreground text-background"
-                  : pillIdle
+                  : idle
               }`}
             >
-              {name}
+              {name !== "All" && (
+                <span
+                  aria-hidden="true"
+                  className="size-2.5 rounded-full"
+                  style={{ backgroundColor: getCategoryColor(name) }}
+                />
+              )}
 
-              <span className="ml-2 text-xs tabular-nums opacity-60">
+              {name === "All" ? "All" : getCategoryLabel(name)}
+
+              <span
+                className={`tabular text-xs ${
+                  isSelected ? "text-background/70" : "text-muted-foreground"
+                }`}
+              >
                 {count.toLocaleString("en-US")}
               </span>
             </button>
@@ -61,16 +78,16 @@ export function ExploreFilters({
         type="button"
         onClick={() => onOpenNowChange(!openNow)}
         aria-pressed={openNow}
-        className={`${pillBase} inline-flex items-center gap-2 self-start sm:self-auto ${
+        className={`${pill} self-start sm:self-auto ${
           openNow
-            ? "border-emerald-600 bg-emerald-600 text-white"
-            : pillIdle
+            ? "border-signal bg-signal text-signal-foreground"
+            : idle
         }`}
       >
         <span
           aria-hidden="true"
-          className={`size-2 rounded-full ${
-            openNow ? "bg-white" : "bg-emerald-500"
+          className={`size-2.5 rounded-full ${
+            openNow ? "bg-foreground" : "bg-open"
           }`}
         />
         Open now

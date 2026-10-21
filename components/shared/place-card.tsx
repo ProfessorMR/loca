@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Bookmark, MapPin, Star } from "lucide-react";
+import { Bookmark, Star } from "lucide-react";
+
 import { useFavorites } from "@/components/shared/favorites-provider";
 import { OpenStatus } from "@/components/shared/open-status";
+import { PlaceBullet } from "@/components/shared/place-bullet";
 import { PlaceImage } from "@/components/shared/place-image";
+import { getCategoryLabel } from "@/lib/category-labels";
 import { formatStreetAddress } from "@/lib/format-address";
 import { formatTag, isFeatureTag } from "@/lib/osm-tags";
 import type { Place } from "@/types/place";
@@ -33,8 +36,10 @@ export function PlaceCard({
   const hasSearch = Boolean(intent?.query.trim());
   const streetAddress = formatStreetAddress(place.address);
 
-  // Tags the search asked for come first, then what the place serves, then
-  // other facts, three at most.
+  const cuisines = place.tags.filter((tag) => !isFeatureTag(tag));
+
+  // Tags the search asked for come first (highlighted), then what the place
+  // serves, then other facts. Three at most.
   const requested = new Set([
     ...(intent?.cuisines ?? []),
     ...(intent?.features ?? []),
@@ -42,30 +47,33 @@ export function PlaceCard({
   const matchedTags = hasSearch
     ? place.tags.filter((tag) => requested.has(tag))
     : [];
-  const reasonTags = Array.from(
+  const chips = Array.from(
     new Set([
       ...matchedTags,
-      ...place.tags.filter((tag) => !isFeatureTag(tag)).slice(0, 2),
+      ...cuisines.slice(0, 2),
       ...place.tags.filter(isFeatureTag),
     ]),
   ).slice(0, 3);
 
-  const matchesPrice =
-    hasSearch &&
-    Boolean(intent?.priceLevel) &&
-    place.priceLevel === intent?.priceLevel;
+  const kind = [
+    getCategoryLabel(place.category).replace(/s$/, ""),
+    ...(cuisines[0] ? [formatTag(cuisines[0])] : []),
+  ].join(" · ");
 
   return (
     <Link
       href={`/places/${place.id}`}
       onMouseEnter={onHover}
       onClick={onClick}
-      className={`group block overflow-hidden rounded-2xl border bg-background transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-        isSelected ? "border-emerald-600 shadow-md" : "border-border"
+      className={`group relative block h-full overflow-hidden rounded-2xl border bg-card transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-foreground/30 hover:shadow-[0_14px_30px_-18px_rgba(19,32,58,0.35)] ${
+        isSelected
+          ? "border-foreground shadow-[0_14px_30px_-18px_rgba(19,32,58,0.35)] ring-1 ring-foreground"
+          : "border-border"
       }`}
     >
       <article>
-          <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+        {place.image && (
+          <div className="relative aspect-[16/9] overflow-hidden bg-muted">
             <PlaceImage
               image={place.image}
               name={place.name}
@@ -74,7 +82,23 @@ export function PlaceCard({
               priority={isPriority}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
+          </div>
+        )}
 
+        <div className="p-5">
+          <div className="flex items-start gap-3.5">
+            <PlaceBullet name={place.name} category={place.category} />
+
+            <div className="min-w-0 flex-1 pr-11">
+              <h3 className="line-clamp-2 text-[1.05rem] font-bold leading-snug tracking-tight">
+                {place.name}
+              </h3>
+
+              <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                {kind}
+              </p>
+            </div>
+          </div>
 
           <button
             type="button"
@@ -85,86 +109,60 @@ export function PlaceCard({
             }}
             aria-label={saved ? "Remove from saved places" : "Save place"}
             aria-pressed={saved}
-            className={`absolute right-4 top-4 z-10 flex size-9 items-center justify-center rounded-full backdrop-blur-sm transition-colors ${
+            className={`absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full border transition-colors ${
               saved
-                ? "bg-foreground text-background"
-                : "bg-background/90 text-foreground hover:bg-background"
+                ? "border-foreground bg-foreground text-background"
+                : "bg-card text-foreground hover:border-foreground"
             }`}
           >
             <Bookmark className={`size-4 ${saved ? "fill-current" : ""}`} />
           </button>
 
-          <div className="absolute left-4 top-4 rounded-full bg-background/90 px-3 py-1.5 text-xs font-medium backdrop-blur-sm">
-            {place.category}
-          </div>
-        </div>
-
-        <div className="p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <h3 className="truncate font-semibold tracking-tight">
-                {place.name}
-              </h3>
-            </div>
-
-            {place.rating !== null && (
-              <div className="flex shrink-0 items-center gap-1 text-sm font-medium">
-                <Star className="size-4 fill-current" />
-                {place.rating.toFixed(1)}
-              </div>
-            )}
-          </div>
-
-          {(place.openingHours || streetAddress) && (
-            <div className="mt-3 space-y-1.5 empty:hidden">
+          {(place.openingHours || streetAddress || place.distance) && (
+            <div className="mt-4 space-y-1.5 empty:hidden">
               <OpenStatus openingHours={place.openingHours} />
 
-              {streetAddress && (
-                <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <MapPin className="size-3.5 shrink-0" />
-                  <span className="truncate">{streetAddress}</span>
+              {(streetAddress || place.distance) && (
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  {streetAddress && (
+                    <span className="truncate">{streetAddress}</span>
+                  )}
+
+                  {place.distance && (
+                    <span className="tabular shrink-0 rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold text-foreground">
+                      {place.distance}
+                    </span>
+                  )}
                 </p>
               )}
             </div>
           )}
 
-          {(place.priceLevel || place.distance) && (
-            <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
-              {place.priceLevel && <span>{place.priceLevel}</span>}
+          {chips.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {chips.map((tag) => {
+                const isMatch = matchedTags.includes(tag);
 
-              {place.priceLevel && place.distance && <span>·</span>}
-
-              {place.distance && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="size-3.5" />
-                  {place.distance}
-                </span>
-              )}
-            </div>
-          )}
-
-          {(reasonTags.length > 0 || matchesPrice) && (
-            <div className="mt-4 border-t pt-3">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">
-                {matchedTags.length > 0 ? "Why this matches" : "Features"}
-              </p>
-
-              <div className="flex flex-wrap gap-1.5">
-                {reasonTags.map((tag) => (
+                return (
                   <span
                     key={tag}
-                    className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400"
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                      isMatch
+                        ? "bg-signal text-signal-foreground"
+                        : "bg-secondary text-foreground/80"
+                    }`}
                   >
                     {formatTag(tag)}
                   </span>
-                ))}
+                );
+              })}
+            </div>
+          )}
 
-                {matchesPrice && (
-                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                    Budget match
-                  </span>
-                )}
-              </div>
+          {place.rating !== null && (
+            <div className="mt-3 flex items-center gap-1 text-sm font-medium">
+              <Star className="size-4 fill-current" />
+              {place.rating.toFixed(1)}
             </div>
           )}
         </div>

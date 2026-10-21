@@ -93,9 +93,9 @@ export function Map({
       const element = marker.getElement();
 
       if (placeId === selectedPlaceId) {
-        element.classList.add("ring-4", "ring-emerald-600/30");
+        element.classList.add("ring-4", "ring-signal");
       } else {
-        element.classList.remove("ring-4", "ring-emerald-600/30");
+        element.classList.remove("ring-4", "ring-signal");
       }
     });
   }, [selectedPlaceId]);
@@ -173,12 +173,12 @@ export function Map({
 
       markerElement.addEventListener("mouseenter", () => {
         callbacks.current.onPlaceHover(place.id);
-        markerElement.classList.add("ring-4", "ring-emerald-600/30");
+        markerElement.classList.add("ring-4", "ring-signal");
       });
 
       markerElement.addEventListener("mouseleave", () => {
         if (callbacks.current.selectedPlaceId !== place.id) {
-          markerElement.classList.remove("ring-4", "ring-emerald-600/30");
+          markerElement.classList.remove("ring-4", "ring-signal");
         }
       });
 

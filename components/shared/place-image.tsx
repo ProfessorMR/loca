@@ -11,6 +11,7 @@ import type { LucideIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { CATEGORY_HUES } from "@/lib/category-colors";
+import { getInitials } from "@/lib/initials";
 import { cn } from "@/lib/utils";
 
 /**
@@ -48,20 +49,6 @@ function hashString(value: string): number {
   }
 
   return hash >>> 0;
-}
-
-function getInitials(name: string): string {
-  const words = name
-    .split(/\s+/)
-    .map((word) => Array.from(word).find((char) => /[\p{L}\p{N}]/u.test(char)))
-    .filter((char): char is string => Boolean(char));
-
-  if (words.length === 0) return "";
-
-  const initials =
-    words.length === 1 ? words[0] : `${words[0]}${words[1]}`;
-
-  return initials.toLocaleUpperCase();
 }
 
 // Four subtle texture overlays, picked per place.

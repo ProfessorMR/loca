@@ -332,3 +332,50 @@ export function isOpenAt(
     ([, end]) => end > 1440 && minute < end - 1440,
   );
 }
+
+const FULL_DAY_NAMES = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+export type WeeklyHours = {
+  days: { name: string; text: string }[];
+};
+
+/**
+ * The opening hours of each weekday as readable text, or null when the hours
+ * can't be read (callers can then show the original text).
+ */
+export function getWeeklyHours(raw: string | null | undefined): WeeklyHours | null {
+  if (!raw) return null;
+
+  const parsed = getParsed(raw);
+  if (!parsed) return null;
+
+  if (parsed === "always") {
+    return {
+      days: FULL_DAY_NAMES.map((name) => ({ name, text: "Open 24 hours" })),
+    };
+  }
+
+  return {
+    days: parsed.map((ranges, index) => ({
+      name: FULL_DAY_NAMES[index],
+      text:
+        ranges.length === 0
+          ? "Closed"
+          : ranges
+              .map(([start, end]) =>
+                start === 0 && end === 1440
+                  ? "Open 24 hours"
+                  : `${formatTime(start)} – ${formatTime(end)}`,
+              )
+              .join(", "),
+    })),
+  };
+}

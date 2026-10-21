@@ -23,6 +23,8 @@ const placeSelect = {
   description: true,
   address: true,
   openingHours: true,
+  phone: true,
+  website: true,
   latitude: true,
   longitude: true,
   createdAt: true,
@@ -60,6 +62,8 @@ type PlaceRecord = {
   description: string | null;
   address: string | null;
   openingHours: string | null;
+  phone: string | null;
+  website: string | null;
   latitude: number | null;
   longitude: number | null;
 };
@@ -81,6 +85,8 @@ function toPlace(place: PlaceRecord): Place | undefined {
     description: place.description,
     address: place.address,
     openingHours: place.openingHours,
+    phone: place.phone,
+    website: place.website,
     latitude: place.latitude,
     longitude: place.longitude,
   };
@@ -145,6 +151,41 @@ export async function getPlaceById(id: string): Promise<Place | undefined> {
   return toPlace(record);
 }
 
+/**
+ * Ids of one page of places for plain browsing: the ones with the most
+ * information first (opening hours, tags, address), then a stable shuffle so
+ * no category or import batch bunches up.
+ */
+async function getBrowseIds(
+  category: string,
+  take: number,
+  skip: number,
+): Promise<string[]> {
+  const rows =
+    category && category !== "All"
+      ? await prisma.$queryRaw<{ id: string }[]>`
+          SELECT id FROM "Place"
+          WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+            AND category = ${category}
+          ORDER BY (
+            (CASE WHEN "openingHours" IS NOT NULL THEN 1 ELSE 0 END) +
+            (CASE WHEN cardinality(tags) > 0 THEN 1 ELSE 0 END) +
+            (CASE WHEN address IS NOT NULL THEN 1 ELSE 0 END)
+          ) DESC, md5(id) ASC
+          LIMIT ${take} OFFSET ${skip}`
+      : await prisma.$queryRaw<{ id: string }[]>`
+          SELECT id FROM "Place"
+          WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+          ORDER BY (
+            (CASE WHEN "openingHours" IS NOT NULL THEN 1 ELSE 0 END) +
+            (CASE WHEN cardinality(tags) > 0 THEN 1 ELSE 0 END) +
+            (CASE WHEN address IS NOT NULL THEN 1 ELSE 0 END)
+          ) DESC, md5(id) ASC
+          LIMIT ${take} OFFSET ${skip}`;
+
+  return rows.map((row) => row.id);
+}
+
 /** The places with these ids, in the same order. Unknown ids are skipped. */
 export async function getPlacesByIds(ids: string[]): Promise<Place[]> {
   if (ids.length === 0) return [];
@@ -192,16 +233,23 @@ export async function searchPlaces(
     const skip = (page - 1) * pageSize;
     const totalCount = await prisma.place.count({ where: baseWhere });
 
+    // Best-documented places first (hours, tags, address), in a stable but
+    // shuffled order, so the first page never looks empty.
+    const ids = await getBrowseIds(category, pageSize, skip);
+
     const records = await prisma.place.findMany({
-      where: baseWhere,
+      where: { id: { in: ids } },
       select: placeSelect,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: pageSize,
+    });
+
+    const byId = new Map(records.map((record) => [record.id, record]));
+    const ordered = ids.flatMap((id) => {
+      const record = byId.get(id);
+      return record ? [record] : [];
     });
 
     return {
-      places: records.flatMap((record) => {
+      places: ordered.flatMap((record) => {
         const place = toPlace(record);
         return place ? [place] : [];
       }),
@@ -583,6 +631,97 @@ export async function getPopularSearchTerms(limit = 6): Promise<string[]> {
     .map((term) => term.label)
     .filter((label) => !parseSearchIntent(label).category)
     .slice(0, limit);
+}
+
+export type MapDots = {
+  /** Category names; the number in `data` is an index into this list */
+  categories: string[];
+  /**
+   * Every place as 5 characters: x (2, base 36), y (2, base 36), category (1).
+   * x and y run 0..1023 across the area, y from north to south.
+   */
+  data: string;
+  /** Width divided by height of the area on the ground */
+  aspect: number;
+  total: number;
+};
+
+let dotsCache: { total: number; dots: MapDots } | null = null;
+
+/**
+ * All the places as tiny coloured dots, compact enough to send with the home
+ * page. Drawn together they form the shape of the city.
+ */
+export async function getMapDots(): Promise<MapDots> {
+  const total = await prisma.place.count({
+    where: { latitude: { not: null }, longitude: { not: null } },
+  });
+
+  if (dotsCache && dotsCache.total === total) return dotsCache.dots;
+
+  const rows = await prisma.place.findMany({
+    where: { latitude: { not: null }, longitude: { not: null } },
+    select: { latitude: true, longitude: true, category: true },
+  });
+
+  const points = rows.flatMap((row) =>
+    row.latitude !== null && row.longitude !== null
+      ? [{ lat: row.latitude, lng: row.longitude, category: row.category }]
+      : [],
+  );
+
+  if (points.length === 0) {
+    return { categories: [], data: "", aspect: 0.5, total: 0 };
+  }
+
+  // Ignore the few far-away places so they don't squash everything else.
+  const trimmed = (values: number[]) => {
+    const sorted = [...values].sort((a, b) => a - b);
+    const at = (fraction: number) =>
+      sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * fraction))];
+
+    return { min: at(0.003), max: at(0.997) };
+  };
+
+  const lat = trimmed(points.map((point) => point.lat));
+  const lng = trimmed(points.map((point) => point.lng));
+
+  const categories = Array.from(new Set(points.map((point) => point.category)));
+  const seen = new Set<number>();
+  let data = "";
+
+  const base36 = (value: number) => value.toString(36).padStart(2, "0");
+
+  for (const point of points) {
+    if (
+      point.lat < lat.min ||
+      point.lat > lat.max ||
+      point.lng < lng.min ||
+      point.lng > lng.max
+    ) {
+      continue;
+    }
+
+    const x = Math.round(((point.lng - lng.min) / (lng.max - lng.min)) * 1023);
+    const y = Math.round(((lat.max - point.lat) / (lat.max - lat.min)) * 1023);
+    const cell = x * 1024 + y;
+
+    if (seen.has(cell)) continue;
+    seen.add(cell);
+
+    data += `${base36(x)}${base36(y)}${categories.indexOf(point.category) % 36}`;
+  }
+
+  // degrees to kilometres: longitude shrinks with latitude
+  const midLat = ((lat.min + lat.max) / 2) * (Math.PI / 180);
+  const aspect =
+    ((lng.max - lng.min) * Math.cos(midLat)) / (lat.max - lat.min);
+
+  const dots = { categories, data, aspect, total };
+
+  dotsCache = { total, dots };
+
+  return dots;
 }
 
 export type TagVocabulary = {

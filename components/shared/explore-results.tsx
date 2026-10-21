@@ -48,8 +48,9 @@ export function ExploreResults({
   const query = searchParams.get("q")?.trim() ?? "";
   const openNow = searchParams.get("open") === "1";
 
-  const startIndex = totalCount === 0 ? 0 : (page - 1) * 24 + 1;
-  const endIndex = Math.min(page * 24, totalCount);
+  const pageSize = 24;
+  const startIndex = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(page * pageSize, totalCount);
 
   // A marker was clicked on the map: show its card in the list.
   function handleMarkerClick(placeId: string) {
@@ -122,7 +123,7 @@ export function ExploreResults({
     navigate(queryString ? `${pathname}?${queryString}` : pathname);
   }
   return (
-    <div className="mt-12">
+    <div className="mt-6">
       <ExploreFilters
         categories={categories}
         selectedCategory={selectedCategory}
@@ -134,32 +135,30 @@ export function ExploreResults({
       />
 
       <div
-        className="mt-5 flex min-h-6 items-center gap-2 text-sm text-muted-foreground"
-        role="status"
-        aria-live="polite"
-      >
-        {isPending && (
-          <>
-            <LoaderCircle className="size-4 animate-spin" />
-            <span>{pendingLabel}</span>
-          </>
-        )}
-      </div>
-
-      <div
         aria-busy={isPending}
-        className={`grid gap-8 transition-opacity duration-200 lg:grid-cols-[minmax(0,1fr)_420px] ${
+        className={`mt-6 grid gap-8 transition-opacity duration-200 lg:grid-cols-[minmax(0,1fr)_440px] ${
           isPending ? "pointer-events-none opacity-50" : "opacity-100"
         }`}
       >
         <section>
           <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">Places</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {totalCount > 0
-                  ? `Showing ${startIndex}–${endIndex} of ${totalCount} places`
-                  : "0 places found"}
+            <div role="status" aria-live="polite">
+              <h1 className="display tabular text-3xl">
+                {totalCount.toLocaleString("en-US")}{" "}
+                {totalCount === 1 ? "place" : "places"}
+              </h1>
+
+              <p className="mt-1.5 flex min-h-5 items-center gap-2 text-sm text-muted-foreground">
+                {isPending ? (
+                  <>
+                    <LoaderCircle className="size-4 animate-spin" />
+                    <span>{pendingLabel}</span>
+                  </>
+                ) : intent?.near ? (
+                  `Nearest to ${intent.near.label} first`
+                ) : totalCount > pageSize ? (
+                  `Showing ${startIndex}–${endIndex}`
+                ) : null}
               </p>
 
               {openNow && (
@@ -174,7 +173,7 @@ export function ExploreResults({
               type="button"
               disabled={isPending}
               onClick={() => setShowMobileMap((value) => !value)}
-              className="inline-flex items-center gap-2 rounded-full border bg-background px-3.5 py-2 text-sm font-medium shadow-sm transition-colors hover:border-foreground/30 disabled:opacity-50 lg:hidden"
+              className="inline-flex h-10 items-center gap-2 rounded-full border bg-card px-4 text-sm font-medium transition-colors hover:border-foreground disabled:opacity-50 lg:hidden"
             >
               {showMobileMap ? (
                 <>
@@ -191,7 +190,7 @@ export function ExploreResults({
           </div>
 
           {showMobileMap && (
-            <div className="mt-5 h-[min(65vh,560px)] min-h-[360px] overflow-hidden rounded-3xl border lg:hidden">
+            <div className="mt-5 h-[min(65vh,560px)] min-h-[360px] overflow-hidden rounded-2xl border lg:hidden">
               <Map
                 places={places}
                 selectedPlaceId={selectedPlaceId}
@@ -203,12 +202,12 @@ export function ExploreResults({
 
           {places.length > 0 ? (
             <>
-              <div className="mt-5 grid gap-5 md:grid-cols-2">
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
                 {places.map((place, index) => (
                   <div
                     key={place.id}
                     id={`place-${place.id}`}
-                    className="scroll-mt-6"
+                    className="h-full scroll-mt-24"
                   >
                     <PlaceCard
                       place={place}
@@ -231,12 +230,12 @@ export function ExploreResults({
                     type="button"
                     disabled={page <= 1 || isPending}
                     onClick={() => goToPage(page - 1)}
-                    className="rounded-full border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+                    className="h-11 rounded-full border bg-card px-5 text-sm font-medium transition-colors hover:border-foreground disabled:pointer-events-none disabled:opacity-40"
                   >
                     Previous
                   </button>
 
-                  <span className="text-sm text-muted-foreground">
+                  <span className="tabular text-sm text-muted-foreground">
                     Page {page} of {totalPages}
                   </span>
 
@@ -244,7 +243,7 @@ export function ExploreResults({
                     type="button"
                     disabled={page >= totalPages || isPending}
                     onClick={() => goToPage(page + 1)}
-                    className="inline-flex items-center gap-2 rounded-full border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-foreground px-5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-40"
                   >
                     {isPending && (
                       <LoaderCircle className="size-4 animate-spin" />
@@ -255,12 +254,12 @@ export function ExploreResults({
               )}
             </>
           ) : (
-            <div className="mt-5 rounded-3xl border bg-muted/20 p-8 text-center sm:p-10">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-background shadow-sm">
+            <div className="mt-5 rounded-2xl border border-dashed bg-card p-8 text-center sm:p-10">
+              <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-signal text-signal-foreground">
                 <span className="text-lg">⌕</span>
               </div>
 
-              <h2 className="mt-5 text-lg font-semibold tracking-tight">
+              <h2 className="display mt-5 text-2xl">
                 {query ? "No matching places" : "No places found"}
               </h2>
 
@@ -276,7 +275,7 @@ export function ExploreResults({
                     type="button"
                     disabled={isPending}
                     onClick={clearSearch}
-                    className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+                    className="h-10 rounded-full bg-foreground px-4 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
                   >
                     Clear search
                   </button>
@@ -288,7 +287,7 @@ export function ExploreResults({
                     type="button"
                     disabled={isPending}
                     onClick={() => selectCategory(name)}
-                    className="rounded-full border bg-background px-4 py-2 text-sm font-medium transition-colors hover:border-foreground/30 hover:bg-muted disabled:opacity-50"
+                    className="h-10 rounded-full border bg-card px-4 text-sm font-medium transition-colors hover:border-foreground disabled:opacity-50"
                   >
                     {name}
                   </button>
@@ -299,7 +298,7 @@ export function ExploreResults({
                 type="button"
                 disabled={isPending}
                 onClick={clearSearchAndFilters}
-                className="mt-4 text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700 hover:underline disabled:opacity-50"
+                className="mt-4 text-sm font-medium underline underline-offset-4 transition-opacity hover:opacity-70 disabled:opacity-50"
               >
                 Clear search and all filters
               </button>
@@ -308,7 +307,7 @@ export function ExploreResults({
         </section>
 
         <aside className="hidden lg:block">
-          <div className="sticky top-6 h-[600px] overflow-hidden rounded-3xl border">
+          <div className="sticky top-24 h-[calc(100vh-7.5rem)] min-h-[420px] overflow-hidden rounded-2xl border bg-card">
             <Map
               places={places}
               selectedPlaceId={selectedPlaceId}
