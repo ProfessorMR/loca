@@ -96,7 +96,7 @@ function buildFallbackSurface(
 // crashing the page.
 const ALLOWED_IMAGE_HOST = /(^|\.)wikimedia\.org$/i;
 
-function isLoadableImage(src: string): boolean {
+export function isLoadableImage(src: string): boolean {
   try {
     const url = new URL(src);
 

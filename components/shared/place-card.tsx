@@ -6,7 +6,8 @@ import { Bookmark, Star } from "lucide-react";
 import { useFavorites } from "@/components/shared/favorites-provider";
 import { OpenStatus } from "@/components/shared/open-status";
 import { PlaceBullet } from "@/components/shared/place-bullet";
-import { PlaceImage } from "@/components/shared/place-image";
+import { PlaceImage, isLoadableImage } from "@/components/shared/place-image";
+import { getCategoryColor } from "@/lib/category-colors";
 import { getCategoryLabel } from "@/lib/category-labels";
 import { formatStreetAddress } from "@/lib/format-address";
 import { formatTag, isFeatureTag } from "@/lib/osm-tags";
@@ -32,6 +33,12 @@ export function PlaceCard({
 }: PlaceCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const saved = isFavorite(place.id);
+
+  // A photo, when there is a usable one, takes the place of the bullet. It never
+  // adds a block on top, so every card has the same shape (and the same
+  // height in a row) whether or not it has a photo.
+  const photo =
+    place.image && isLoadableImage(place.image) ? place.image : null;
 
   const hasSearch = Boolean(intent?.query.trim());
   const streetAddress = formatStreetAddress(place.address);
@@ -72,22 +79,28 @@ export function PlaceCard({
       }`}
     >
       <article>
-        {place.image && (
-          <div className="relative aspect-[16/9] overflow-hidden bg-muted">
-            <PlaceImage
-              image={place.image}
-              name={place.name}
-              category={place.category}
-              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-              priority={isPriority}
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          </div>
-        )}
-
         <div className="p-5">
           <div className="flex items-start gap-3.5">
-            <PlaceBullet name={place.name} category={place.category} />
+            {photo ? (
+              <span
+                className="relative size-11 shrink-0 overflow-hidden rounded-full bg-muted"
+                // the category color stays visible as a ring around the photo
+                style={{
+                  boxShadow: `0 0 0 2px var(--card), 0 0 0 4px ${getCategoryColor(place.category)}`,
+                }}
+              >
+                <PlaceImage
+                  image={photo}
+                  name={place.name}
+                  category={place.category}
+                  sizes="44px"
+                  priority={isPriority}
+                  className="object-cover"
+                />
+              </span>
+            ) : (
+              <PlaceBullet name={place.name} category={place.category} />
+            )}
 
             <div className="min-w-0 flex-1 pr-11">
               <h3 className="line-clamp-2 text-[1.05rem] font-bold leading-snug tracking-tight">
